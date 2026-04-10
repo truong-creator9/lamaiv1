@@ -992,11 +992,6 @@
                     a: 'Các rập thiết kế bên em đều được tính toán 3D "chia tỷ lệ khối": đường eo mây được đẩy cao thắt qua rốn một chút lấp lém hoàn toàn khuyết điểm mỡ bụng. Tay bồng giúp giấu khéo bắp tay. Tỉ lệ dáng dấp lập tức trở nên thanh tao hoàn mỹ ạ!'
                 },
                 {
-                    q: "Sao giá cao hơn xưởng mạng?",
-                    fullQ: "Chị thấy váy bên em giá hơi cao so với hàng xưởng mạng?",
-                    a: 'Dạ LAMAI hiểu băn khoăn của nàng ạ. Nhưng khi khoác bộ váy "hàng thiết kế", kĩ thuật may lộn khép, lót lụa thượng hạng... sẽ làm chiếc váy cứng cáp bền bỉ trong 3-4 năm tới. Độ đắt giá nằm ở cảm giác sang trọng và tự tin kiêu hãnh mà nàng tỏa ra!'
-                },
-                {
                     q: "Váy này có đi làm được không?",
                     fullQ: "Váy này tiệc tùng thì đẹp, đi làm có bị lố quá không em?",
                     a: '100% là tinh tế nàng nhe! Sứ mệnh LAMAI là "Day-to-night". Sáng đi làm khoác blazer xách túi hộp là rất công sở quyền lực. Tối rũ blazer thoa miếng son, thêm đôi cao gót tự dưng lộng lẫy và kiêu kỳ nhất tại tiệc!'
@@ -1005,6 +1000,24 @@
                     q: "Chính sách đổi trả ra sao?",
                     fullQ: "Nhỡ mua về mặc bị lọt thỏm hoặc kích ngực thì làm sao em?",
                     a: "Nàng gạt âu lo luôn vì LAMAI có đặc quyền **ĐỔI MỚI MIỄN PHÍ TẬN NHÀ TRONG 15 NGÀY**. Không ưng eo nách, nhắn LAMAI 1 tiếng shipper cầm size đúng đổi tận nơi và thầu luôn phí ship đó nhé!"
+                },
+                // 1. Hỏi giá của từng sản phẩm
+                {
+                    q: "Mẫu này giá bao nhiêu?",
+                    fullQ: "Mẫu này giá bao nhiêu hả em? Báo giá cho chị.",
+                    a: "Dạ thiết kế LADY GRACE bên em đang có giá ưu đãi Flashsale cực kỳ đặc biệt, từ 1.390.000đ giảm chỉ còn **595.000đ**. Mức giá này đã được trợ giá kỷ niệm nhà máy và miễn phí giao hàng toàn quốc rồi đó ạ. Cực kỳ kinh tế để sắm một thiết kế mặc sang cả 3-4 năm tới. Nàng tranh thủ chốt sớm nhé!"
+                },
+                // 2. Hỏi sản phẩm có phù hợp không
+                {
+                    q: "Mình mặc có hợp không?",
+                    fullQ: "Em ơi, chị mặc mẫu này có hợp không?",
+                    a: "Dạ váy LADY GRACE được rập 3D đặc biệt ưu ái cho vóc dáng phụ nữ Việt Nam mình. Thiết kế giấu nhẹm mỡ bụng, đẩy chân dài, cực kỳ thanh lịch và phù hợp mọi độ tuổi. Nàng cho em xin **Vòng Ngực - Eo - Cân nặng** để LAMAI nhặt size chuẩn như may đo cho nàng nha!"
+                },
+                // 3. Để chị nghĩ thêm
+                {
+                    q: "Để chị nghĩ thêm nha",
+                    fullQ: "Uhm chị thấy ưng rồi, nhưng để chị nghĩ thêm có gì mua sau nhé.",
+                    a: "Dạ vâng LAMAI rất hiểu ạ. Em chỉ dặn nhỏ xíu xiu là deal giảm giá 595k chỉ áp dụng ngắn hạn và kho tổng báo màu này chị ưng chỉ còn lác đác vài chiếc. Nàng ưng thì chốt kẻo dứt đợt sale lại tiếc lắm ạ!<br><br>Nếu nàng vẫn phân vân, nàng bấm nút bên dưới điền form **Khảo Sát** để LAMAI giữ riêng MÃ GIẢM GIÁ 50% này cho nàng nha!"
                 }
             ],
             fallback: "Dạ LAMAI xin ghi lại câu hỏi này của nàng! Trợ lý ảo của LAMAI vẫn đang được dạy học thêm mỗi ngày để phục vụ nàng tốt hơn. Chuyên viên tư vấn thật của LAMAI sẽ trực tiếp giải đáp câu hỏi này cho nàng nhé.<br><br>Trong lúc đó, nàng có muốn điền Form Mua Ngay hoặc Khảo Sát để nhận ưu đãi không ạ?"
@@ -1195,18 +1208,58 @@
             setTimeout(() => {
                 document.getElementById(typingId)?.remove();
                 
-                // Simple search in FAQs
+                // Tham chiếu mapping các keyword sang đối tượng FAQ hoặc action
                 const lowerText = text.toLowerCase();
                 let foundAnswer = null;
-                for (let faq of botData.faqs) {
-                    if (lowerText.includes("nóng") && faq.q.includes("nóng")) foundAnswer = faq.a;
-                    else if ((lowerText.includes("béo") || lowerText.includes("mập") || lowerText.includes("bụng") || lowerText.includes("to")) && faq.q.includes("mỡ bụng")) foundAnswer = faq.a;
-                    else if ((lowerText.includes("đắt") || lowerText.includes("giá") || lowerText.includes("bao nhiêu")) && faq.q.includes("giá")) foundAnswer = faq.a;
-                    else if ((lowerText.includes("đi làm") || lowerText.includes("công sở")) && faq.q.includes("đi làm")) foundAnswer = faq.a;
-                    else if ((lowerText.includes("đổi") || lowerText.includes("trả") || lowerText.includes("chính sách")) && faq.q.includes("đổi trả")) foundAnswer = faq.a;
+                let foundAction = null;
+
+                // 4. Kịch bản chốt đơn: Xử lý ý định mua hàng / chốt đơn
+                if (lowerText.includes("mua") || lowerText.includes("đặt") || lowerText.includes("chốt") || lowerText.includes("lấy") || lowerText.includes("tư vấn cho chị")) {
+                    foundAction = 'buy';
+                }
+                // Tình huống mới: Khách tự cung cấp SĐT hoặc Địa chỉ
+                else if (/\b0\d{9}\b/.test(lowerText) || /\b\d{10}\b/.test(lowerText) || lowerText.includes("tỉnh") || lowerText.includes("thành phố") || lowerText.includes("quận") || lowerText.includes("huyện") || lowerText.includes("phường") || lowerText.includes("xã") || lowerText.includes("đường ") || lowerText.includes("số nhà") || lowerText.includes("ngõ") || lowerText.includes("hẻm")) {
+                    foundAction = 'confirm-order';
+                }
+                // 3. Xử lý kịch bản: Nói "để tôi nghĩ thêm"
+                else if (lowerText.includes("nghĩ thêm") || lowerText.includes("để xem") || lowerText.includes("chờ") || lowerText.includes("từ từ")) {
+                    foundAction = 'waitlist-think';
+                }
+                else {
+                    for (let faq of botData.faqs) {
+                        if (lowerText.includes("nóng") && faq.q.includes("nóng")) foundAnswer = faq.a;
+                        else if ((lowerText.includes("béo") || lowerText.includes("mập") || lowerText.includes("bụng") || lowerText.includes("to")) && faq.q.includes("mỡ bụng")) foundAnswer = faq.a;
+                        else if ((lowerText.includes("đắt") || lowerText.includes("giá") || lowerText.includes("bao nhiêu") || lowerText.includes("tiền")) && faq.q.includes("giá bao nhiêu")) foundAnswer = faq.a;
+                        else if ((lowerText.includes("đi làm") || lowerText.includes("công sở")) && faq.q.includes("đi làm")) foundAnswer = faq.a;
+                        else if ((lowerText.includes("đổi") || lowerText.includes("trả") || lowerText.includes("chính sách")) && faq.q.includes("đổi trả")) foundAnswer = faq.a;
+                        // Khớp intent: Hỏi có hợp với mình không
+                        else if ((lowerText.includes("hợp") || lowerText.includes("dáng") || lowerText.includes("vóc") || lowerText.includes("có vừa")) && faq.q.includes("hợp")) foundAnswer = faq.a;
+                    }
                 }
                 
-                if (foundAnswer) {
+                // Logic trả về tin nhắn
+                if (foundAction === 'buy') {
+                    addBotMessage("Dạ LAMAI thấy nàng đã ưng thiết kế này rồi. Mẫu thanh lịch này quả thật sinh ra như đo ni đóng giày để tôn khí chất kiêu kỳ của nàng đấy ạ!<br><br>Nàng vui lòng bấm nút bên dưới để điền THÔNG TIN MUA HÀNG và LAMAI sẽ chốt giữ size ngay cho nàng nhé!");
+                    const linkHtml = `
+                    <div class="mt-3 mb-1">
+                        <button onclick="document.getElementById('checkoutForm').scrollIntoView({behavior: 'smooth'}); toggleChatbot();" class="w-full bg-gradient-to-r from-brand-500 to-pink-500 text-white font-bold py-2 px-4 rounded-xl text-xs animate-pulse-fast shadow-md text-center">BẤM VÀO ĐIỀN FORM MUA NGAY <i class="fas fa-arrow-down ml-1"></i></button>
+                    </div>`;
+                    setTimeout(() => addBotMessage(linkHtml), 500);
+                }
+                else if (foundAction === 'waitlist-think') {
+                    // Trả lời kịch bản nghĩ thêm + thả nút link form
+                    addBotMessage(botData.faqs.find(f => f.q.includes("nghĩ thêm")).a);
+                    const linkHtml = `
+                    <div class="mt-3 mb-1">
+                        <button onclick="document.getElementById('waitlistFormSection').scrollIntoView({behavior: 'smooth'}); toggleChatbot();" class="w-full border-2 border-brand-500 text-brand-600 bg-brand-50 font-bold py-2 px-4 rounded-xl text-xs shadow-sm shadow-brand-500/20 text-center">TỚI KHẢO SÁT & GIỮ MÃ VIP <i class="fas fa-gift ml-1"></i></button>
+                    </div>`;
+                    setTimeout(() => addBotMessage(linkHtml), 500);
+                }
+                else if (foundAction === 'confirm-order') {
+                    // Trả lời kịch bản lên đơn ngay trong tin nhắn
+                    addBotMessage("Dạ LAMAI đã ghi nhận thông tin đặt hàng của nàng! Hệ thống bên em đã lưu lại Số điện thoại / Địa chỉ của mình để lên đơn áp dụng ưu đãi GIẢM TỪ 1.390k CÒN 595k cho thiết kế LADY GRACE này rồi ạ.<br><br>Trong khoảng 1-2 ngày tới, bên vận chuyển Giao Hàng Tiết Kiệm sẽ liên lạc để giao tận tay chiếc hộp xinh đẹp này tới nhà. Nàng nhớ để ý điện thoại nha! LAMAI trân trọng cảm ơn nàng thơ đã tin tưởng và gửi gắm sắc vóc cho đồ thiết kế nhà LAMAI ạ! 💕");
+                }
+                else if (foundAnswer) {
                     addBotMessage(foundAnswer);
                 } else {
                     addBotMessage(botData.fallback);
@@ -1214,7 +1267,7 @@
                 
                 setTimeout(() => {
                     renderOptions('initial');
-                }, 1000);
+                }, foundAction ? 2000 : 1000); // Đợi lâu hơn nếu có action linkHtml
             }, 1200);
         }
 

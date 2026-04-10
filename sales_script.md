@@ -41,12 +41,21 @@
 **Câu 10: Nàng hỏi: Cái này hàng sẵn hay phải đợi may chờ order bao ngày em?**
 **LAMAI:** Các mẫu hiện tại đều đã được cắt rập phom có sẵn tại kho mát nhà LAMAI rồi, nhưng dĩ nhiên số lượng không hề lớn - vì LAMAI chú trọng độc bản, tránh loãng đụng hàng ở chốn văn phòng. Form nịnh da tôn dáng như mẫu này chị em lấy đi rất lẹ tay, nàng ưng rồi thì báo em lên phiếu ngay kẻo mai mốt rớt size là tiếc lắm lận nàng ạ!
 
+**Câu 11: Nàng hỏi: Mẫu này giá bao nhiêu hả em? Báo giá cho chị.**
+**LAMAI:** Dạ thiết kế LADY GRACE bên em đang có giá ưu đãi Flashsale cực kỳ đặc biệt, từ 1.390.000đ giảm chỉ còn **595.000đ**. Mức giá này đã được trợ giá kỷ niệm nhà máy và miễn phí giao hàng toàn quốc rồi đó ạ. Cực kỳ kinh tế để sắm một thiết kế mặc sang cả 3-4 năm tới. Nàng tranh thủ chốt sớm nhé!
+
+**Câu 12: Nàng hỏi: Em ơi, chị mặc mẫu này có hợp không?**
+**LAMAI:** Dạ váy LADY GRACE được rập 3D đặc biệt ưu ái cho vóc dáng phụ nữ Việt Nam mình. Thiết kế giấu nhẹm mỡ bụng, đẩy chân dài, cực kỳ thanh lịch và phù hợp mọi độ tuổi. Nàng cho em xin **Vòng Ngực - Eo - Cân nặng** để LAMAI nhặt size chuẩn như may đo cho nàng nha!
+
+**Câu 13: Nàng hỏi: Uhm chị thấy ưng rồi, nhưng để chị nghĩ thêm có gì mua sau nhé.**
+**LAMAI:** Dạ vâng LAMAI rất hiểu ạ. Em chỉ dặn nhỏ xíu xiu là deal giảm giá 595k chỉ áp dụng ngắn hạn và kho tổng báo màu này chị ưng chỉ còn lác đác vài chiếc. Nàng ưng thì chốt kẻo dứt đợt sale lại tiếc lắm ạ!<br><br>Nếu nàng vẫn phân vân, nàng bấm nút bên dưới điền form **Khảo Sát** để LAMAI giữ riêng MÃ GIẢM GIÁ 50% này cho nàng nha!
+
 ---
 
-## 3. Câu Chốt (Closing) Khi Khách Có Ý Định Mua
+## 3. Câu Chốt (Closing) Khi Khách Có Ý Định Mua (Tự động kích hoạt khi khách gõ "Mua/Chốt/Lấy")
 
-"Dạ cảm ơn nàng đã ưu ái gửi gắm sắc vóc cho Gu thẩm mỹ nhà LAMAI! Thiết kế thanh lịch này quả thật là sinh ra như đo ni đóng giày để tôn điểm khí chất kiêu kỳ của nàng. Mẫu size [S/M/L...] bên kho báo chỉ lác đác chừng vài cái.
-Nàng để lại cho LAMAI xin **[Tên Điện thoại Di Động + Địa chỉ nhận hàng]** để LAMAI tự lưu một xuất ưu đãi Deal xịn nhất và tức tốc đóng hộp gửi bưu kiện trên tay nàng ngay hôm nay nhé! 💕"
+"Dạ LAMAI thấy nàng đã ưng thiết kế này rồi. Mẫu thanh lịch này quả thật sinh ra như đo ni đóng giày để tôn khí chất kiêu kỳ của nàng đấy ạ! Nàng vui lòng bấm nút bên dưới để điền THÔNG TIN MUA HÀNG và LAMAI sẽ chốt giữ size ngay cho nàng nhé! 💕"
+*(Chatbot hiển thị Nút Dẫn Sang Form Mua Hàng)*
 
 ---
 
@@ -57,3 +66,16 @@ Trong thời gian đó, nàng ráng bớt xíu thời gian chia sẻ vài dòng 
 
 👉 Nàng nhấn điền form để cất riêng Coupon siêu tiết kiệm nghen: [Link Form Khảo Sát]
 Mến chúc nàng thơ luôn rạng rỡ và mong tương lai không xa LAMAI được đồng hành làm đẹp cho nàng! 💕"
+
+---
+
+## 5. Kịch Bản Lên Đơn Tự Động Khi Khách Gõ SĐT / Địa Chỉ Trực Tiếp Vào Chat
+
+*(Kịch bản này tự động được kích hoạt nếu Chatbot bắt được một chuỗi 10 số điện thoại (VD: 0912345678) hoặc các từ khóa địa chỉ như: tỉnh, thành phố, quận, huyện, phường, xã, đường, số nhà...)*
+
+**LAMAI (Tự động trả lời chốt đơn):**
+"Dạ LAMAI đã ghi nhận thông tin đặt hàng của nàng! Hệ thống bên em đã lưu lại Số điện thoại / Địa chỉ của mình để lên đơn áp dụng ưu đãi GIẢM TỪ 1.390k CÒN 595k cho thiết kế LADY GRACE này rồi ạ.
+
+Trong khoảng 1-2 ngày tới, bên vận chuyển Giao Hàng Tiết Kiệm sẽ liên lạc để giao tận tay chiếc hộp xinh đẹp này tới nhà. Nàng nhớ để ý điện thoại nha! 
+
+LAMAI trân trọng cảm ơn nàng thơ đã tin tưởng và gửi gắm sắc vóc cho đồ thiết kế nhà LAMAI ạ! 💕"
