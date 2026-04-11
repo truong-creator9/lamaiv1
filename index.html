@@ -508,7 +508,7 @@
                     <div>
                         <div class="relative flex items-center">
                             <i class="fas fa-user absolute left-4 text-gray-400"></i>
-                            <input id="fullName" name="fullName" type="text" placeholder="Họ và tên (*)" required
+                            <input id="fullName" name="fullname" type="text" placeholder="Họ và tên (*)" required
                                 class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all dark:text-white placeholder-gray-400">
                         </div>
                     </div>
@@ -567,6 +567,40 @@
                         hàng)
                     </p>
                 </form>
+
+                <!-- QR Code Section (Ẩn mặc định) -->
+                <div id="qrCodeSection" class="hidden mt-6 p-5 bg-white dark:bg-gray-800 rounded-2xl border-2 border-brand-500 shadow-lg text-center transition-all">
+                    <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white mb-2 text-gradient">THANH TOÁN ĐƠN HÀNG</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Vui lòng quét mã QR dưới đây bằng App Ngân hàng của bạn.</p>
+                    
+                    <div class="bg-white p-2 rounded-xl inline-block shadow-sm">
+                        <img id="sepayQrCode" src="" alt="Mã QR Thanh toán" class="mx-auto w-48 h-48 object-contain" />
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 mt-3 italic">Hoặc chuyển khoản thủ công:</p>
+                    <div class="mt-2 text-left bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-100 dark:border-gray-700 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <p>Ngân hàng: <span class="font-bold text-brand-600">ACB</span></p>
+                        <p>Số tài khoản: <span class="font-bold text-brand-600">19907647</span></p>
+                        <p>Số tiền: <span class="font-bold text-brand-600">10.000đ</span></p>
+                        <p>Nội dung: <span id="qrTransferDesc" class="font-bold text-brand-600"></span></p>
+                    </div>
+                    
+                    <button type="button" onclick="window.location.reload()" class="mt-4 text-sm font-semibold text-gray-500 hover:text-brand-500 underline">
+                        Quay lại xem sản phẩm khác
+                    </button>
+                </div>
+
+                <!-- Success Section (Ẩn mặc định) -->
+                <div id="paymentSuccessSection" class="hidden mt-6 p-5 bg-white dark:bg-gray-800 rounded-2xl border-2 border-green-500 shadow-lg text-center transition-all slide-up">
+                    <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-3xl text-green-500"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white mb-2 text-green-600">THANH TOÁN THÀNH CÔNG</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Cảm ơn bạn! Hệ thống đã nhận được tiền thanh toán.</p>
+                    <button type="button" onclick="window.location.reload()" class="w-full mt-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold py-3 rounded-xl shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition">
+                        HOÀN TẤT
+                    </button>
+                </div>
             </div>
 
         </section>
@@ -712,7 +746,7 @@
             </button>
             
             <!-- Chatbot Window -->
-            <div id="chatbotWindow" class="absolute bottom-16 right-4 sm:right-0 w-[350px] max-w-[calc(100vw-2rem)] sm:max-w-none h-[500px] max-h-[70vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col transform translate-y-8 opacity-0 scale-95 pointer-events-none transition-all duration-300 border border-brand-100 dark:border-gray-700 origin-bottom-right overflow-hidden pointer-events-auto">
+            <div id="chatbotWindow" class="absolute bottom-16 right-4 sm:right-0 w-[350px] max-w-[calc(100vw-2rem)] sm:max-w-none h-[500px] max-h-[70vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col transform translate-y-8 opacity-0 scale-95 pointer-events-none transition-all duration-300 border border-brand-100 dark:border-gray-700 origin-bottom-right overflow-hidden">
                 <!-- Header -->
                 <div class="bg-gradient-to-r from-brand-50 to-pink-50 dark:from-gray-800 dark:to-gray-800 p-4 border-b border-brand-100 dark:border-gray-700 flex justify-between items-center relative shadow-sm">
                     <div class="flex items-center gap-3">
@@ -872,7 +906,7 @@
         const btnLoading = document.getElementById('btnLoading');
 
         // => ĐIỀN URL WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY:
-        const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyhUdY_RaYWJqyYCXhHnLDUt7EY2rUHarzu_8C-f-OgLYKXv505YSW7chgYU4-Cew/exec';
+        const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwGLexLRSo3to0KjaU5rDRAnmi9fOQltx51DZpq-ICaFmhNh7Cn2805vVRjaAmYq0W1/exec';
 
         orderForm.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -886,8 +920,8 @@
             const formData = new FormData(orderForm);
 
             // Thêm các thông tin cơ bản về sản phẩm vào đơn hàng
-            formData.append('productName', 'LADY GRACE - Váy Thiết Kế');
-            formData.append('price', '595.000đ');
+            formData.append('product', 'LADY GRACE - Váy Thiết Kế');
+            formData.append('price', '10.000đ');
 
             // Lấy thời gian hiện tại
             formData.append('orderTime', new Date().toLocaleString('vi-VN'));
@@ -905,15 +939,68 @@
                 return;
             }
 
+            // Sử dụng URLSearchParams thay vì FormData thông thường để e.parameter trong Google Apps Script bắt được dữ liệu
+            const urlEncodedData = new URLSearchParams(formData).toString();
+
             fetch(GOOGLE_SHEET_WEB_APP_URL, {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: urlEncodedData,
                 mode: 'no-cors' // Tắt cors mode để submit ẩn mượt mà
             })
                 .then(response => {
-                    // Với no-cors, mọi response sẽ được coi là thành công (opaque response)
-                    alert('🎉 Tuyệt vời! Đơn hàng của bạn đã được ghi nhận.nnShop sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận đơn hàng.');
-                    orderForm.reset();
+                    // Tạo mã QR động với nội dung duy nhất theo SĐT
+                    const phone = formData.get('phone');
+                    
+                    // Loại bỏ khoảng trắng và các ký tự đặc biệt trong SĐT nếu cần, 
+                    // Nội dung chuyển khoản sẽ gồm tiền tố + SĐT để dễ dàng tự động đối soát sau này
+                    const transferDesc = `THANH TOAN DON HANG ${phone}`;
+                    
+                    // Encode URL để truyền tham số an toàn trên link
+                    const encodedDesc = encodeURIComponent(transferDesc);
+                    const amount = '10000'; // Test số tiền 10000 VNĐ
+                    
+                    // Tạo link ảnh QR SePay
+                    const qrUrl = `https://qr.sepay.vn/img?acc=19907647&bank=ACB&amount=${amount}&des=${encodedDesc}`;
+                    
+                    // Gán link QR vào thẻ <img> và hiển thị text nội dung
+                    document.getElementById('sepayQrCode').src = qrUrl;
+                    document.getElementById('qrTransferDesc').innerText = transferDesc;
+                    
+                    // Ẩn form đặt hàng, hiện khu vực QR lên
+                    orderForm.classList.add('hidden');
+                    document.getElementById('qrCodeSection').classList.remove('hidden');
+
+                    // ============================================
+                    // POLLING TỰ ĐỘNG KIỂM TRA THANH TOÁN SEPAY
+                    // ============================================
+                    let checkCount = 0;
+                    const maxChecks = 120; // Kiểm tra trong 10 phút (mỗi 5s = 120 lần)
+                    const checkInterval = setInterval(() => {
+                        checkCount++;
+                        if(checkCount > maxChecks) {
+                            clearInterval(checkInterval);
+                            return;
+                        }
+                        // Gọi WebApp dạng GET để kiểm tra trạng thái
+                        fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=check_payment&phone=${phone}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if(data && data.status === 'paid') {
+                                    clearInterval(checkInterval);
+                                    // Ẩn mã QR, hiện thông báo thành công!
+                                    document.getElementById('qrCodeSection').classList.add('hidden');
+                                    document.getElementById('paymentSuccessSection').classList.remove('hidden');
+                                }
+                            })
+                            .catch(err => {
+                                // Bỏ qua lỗi mạng trong quá trình polling
+                            });
+                    }, 5000); // 5 giây kiểm tra 1 lần
+
+                    alert('🎉 Đơn hàng đã được ghi nhận! Vui lòng quét mã QR xuất hiện trên màn hình để thanh toán.');
                 })
                 .catch(error => {
                     alert('Có lỗi xảy ra trong quá trình gửi đơn hàng. Xin vui lòng thử lại sau hoặc gọi hotline!');
