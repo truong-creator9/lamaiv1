@@ -74,16 +74,16 @@ app.get('/api/admin', (req, res) => {
             `, (err, rows) => {
                 const data = (rows || []).map(r => ({
                     row: r.id,
-                    cols: [
-                        r.registration_date, 
-                        r.name, 
-                        r.phone, 
-                        r.email || '',
-                        r.address || '', 
-                        r.size_preference || '', 
-                        r.product_name || (r.pain_points ? 'Khảo Sát Đợi' : ''), 
-                        r.amount || ''
-                    ]
+                    data: {
+                        registration_date: r.registration_date,
+                        name: r.name,
+                        phone: r.phone || '',
+                        email: r.email || '',
+                        address: r.address || '',
+                        size: r.size_preference || '',
+                        product: r.product_name || (r.pain_points ? 'Khảo Sát Đợi' : ''),
+                        amount: r.amount || ''
+                    }
                 }));
                 res.json({ success: true, data });
             });
@@ -101,16 +101,16 @@ app.get('/api/admin', (req, res) => {
                 }
                 const data = (rows || []).map(r => ({
                     row: r.id,
-                    cols: [
-                        r.purchase_date, 
-                        r.cname, 
-                        r.cphone || '',
-                        r.cemail || '',
-                        r.pname || 'LADY GRACE - Váy Thiết Kế', 
-                        r.amount, 
-                        r.status, 
-                        'MGD_' + r.id
-                    ]
+                    data: {
+                        purchase_date: r.purchase_date,
+                        customer_name: r.cname || '',
+                        phone: r.cphone || '',
+                        email: r.cemail || '',
+                        product: r.pname || 'LADY GRACE - Váy Thiết Kế',
+                        amount: r.amount || 0,
+                        status: r.status || 'pending',
+                        order_code: 'MGD_' + r.id
+                    }
                 }));
                 res.json({ success: true, data });
             });
@@ -131,18 +131,15 @@ app.post('/api/admin', (req, res) => {
                 res.json({ success: true, message: 'Thêm sản phẩm thành công!' });
             });
         } else if (sheet === 'customers') {
-            // [Thời gian, Họ Tên, Số điện thoại, Địa chỉ, Size, Sản phẩm, Giá tiền]
-            db.run("INSERT INTO customers (registration_date, name, phone, address, size_preference) VALUES (?, ?, ?, ?, ?)", [data[0], data[1], data[2], data[3], data[4]], function (err) {
+            db.run("INSERT INTO customers (registration_date, name, phone, email, address, size_preference) VALUES (?, ?, ?, ?, ?, ?)", [data[0], data[1], data[2], data[3], data[4], data[5]], function (err) {
                 if (err) return res.json({ success: false, error: err.message });
                 res.json({ success: true, message: 'Thêm khách hàng thành công!' });
             });
         } else if (sheet === 'orders') {
-            // [Ngày mua, Khách hàng, Sản phẩm, Số tiền, Trạng thái, Mã GD]
-            // Tạo giả một khách hàng để có liên kết ID, hoặc để customer_id null
-            db.run("INSERT INTO customers (registration_date, name) VALUES (?, ?)", [data[0], data[1]], function(err) {
+            db.run("INSERT INTO customers (registration_date, name, phone, email) VALUES (?, ?, ?, ?)", [data[0], data[1], data[2], data[3]], function(err) {
                 const cid = this.lastID;
-                const amt = parseFloat((data[3]||'').replace(/[^\d]/g, '')) || 0;
-                db.run("INSERT INTO orders (customer_id, purchase_date, amount, status) VALUES (?, ?, ?, ?)", [cid, data[0], amt, data[4]], function(err) {
+                const amt = parseFloat((data[5]||'').replace(/[^\d]/g, '')) || 0;
+                db.run("INSERT INTO orders (customer_id, purchase_date, amount, status) VALUES (?, ?, ?, ?)", [cid, data[0], amt, data[6]], function(err) {
                     res.json({ success: true, message: 'Tạo đơn hàng thành công!' });
                 });
             });
@@ -153,12 +150,12 @@ app.post('/api/admin', (req, res) => {
                 res.json({ success: err ? false : true, error: err?.message });
             });
         } else if (sheet === 'customers') {
-            db.run("UPDATE customers SET registration_date=?, name=?, phone=?, address=?, size_preference=? WHERE id=?", [data[0], data[1], data[2], data[3], data[4], row], function (err) {
+            db.run("UPDATE customers SET registration_date=?, name=?, phone=?, email=?, address=?, size_preference=? WHERE id=?", [data[0], data[1], data[2], data[3], data[4], data[5], row], function (err) {
                 res.json({ success: err ? false : true, error: err?.message });
             });
         } else if (sheet === 'orders') {
-            const amt = parseFloat((data[3]||'').replace(/[^\d]/g, '')) || 0;
-            db.run("UPDATE orders SET purchase_date=?, amount=?, status=? WHERE id=?", [data[0], amt, data[4], row], function (err) {
+            const amt = parseFloat((data[5]||'').replace(/[^\d]/g, '')) || 0;
+            db.run("UPDATE orders SET purchase_date=?, amount=?, status=? WHERE id=?", [data[0], amt, data[6], row], function (err) {
                 res.json({ success: err ? false : true, error: err?.message, message: 'Cập nhật đơn hàng thành công.' });
             });
         }

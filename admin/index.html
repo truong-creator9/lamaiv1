@@ -189,47 +189,54 @@
 
             // Customers
             const tC = document.getElementById('tbody-customers');
-            tC.innerHTML = allData.customers.map(item => `
+            tC.innerHTML = allData.customers.map(item => {
+                const d = item.data || {};
+                return `
                 <tr class="hover:bg-blue-50">
                     <td class="px-4 py-2 font-medium text-gray-500">${item.row}</td>
-                    <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[0]}</td>
-                    <td class="px-4 py-2 font-bold text-gray-800">${item.cols[1]}</td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">${d.registration_date || ''}</td>
+                    <td class="px-4 py-2 font-bold text-gray-800">${d.name || ''}</td>
                     <td class="px-4 py-2 text-gray-600">
-                        <div><i class="fas fa-phone text-xs mr-1 text-gray-400"></i>${item.cols[2]}</div>
-                        ${item.cols[3] ? `<div class="text-xs text-gray-400 mt-1"><i class="fas fa-envelope mr-1"></i>${item.cols[3]}</div>` : ''}
+                        <div><i class="fas fa-phone text-xs mr-1 text-gray-400"></i>${d.phone || ''}</div>
+                        ${d.email ? `<div class="text-xs text-gray-400 mt-1"><i class="fas fa-envelope mr-1"></i>${d.email}</div>` : ''}
                     </td>
-                    <td class="px-4 py-2 text-gray-500 truncate max-w-xs">${item.cols[4]}</td>
-                    <td class="px-4 py-2 text-gray-600 text-xs text-wrap">${item.cols[5] ? 'S:'+item.cols[5] : ''} | ${item.cols[6]||''} | ${formatMoney(item.cols[7]||'')}</td>
+                    <td class="px-4 py-2 text-gray-500 truncate max-w-xs">${d.address || ''}</td>
+                    <td class="px-4 py-2 text-gray-600 text-xs">${d.size ? 'S:'+d.size : ''} ${d.product ? '| '+d.product : ''} ${d.amount ? '| '+formatMoney(d.amount) : ''}</td>
                     <td class="px-4 py-2 text-right">
                         <button onclick="editModal('customers', ${item.row})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteRow('customers', ${item.row})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
 
             // Orders
             const tO = document.getElementById('tbody-orders');
-            tO.innerHTML = allData.orders.map(item => `
+            tO.innerHTML = allData.orders.map(item => {
+                const d = item.data || {};
+                const statusClass = (d.status === 'Đã Thanh Toán' || d.status === 'success')
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700';
+                return `
                 <tr class="hover:bg-blue-50">
                     <td class="px-4 py-2 font-medium text-gray-500">${item.row}</td>
-                    <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[0]}</td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">${d.purchase_date || ''}</td>
                     <td class="px-4 py-2">
-                        <div class="font-bold text-gray-800">${item.cols[1]}</div>
+                        <div class="font-bold text-gray-800">${d.customer_name || ''}</div>
                         <div class="text-xs text-gray-500 flex flex-col mt-1">
-                            ${item.cols[2] ? `<span><i class="fas fa-phone mr-1"></i>${item.cols[2]}</span>` : ''}
-                            ${item.cols[3] ? `<span><i class="fas fa-envelope mr-1"></i>${item.cols[3]}</span>` : ''}
+                            ${d.phone ? `<span><i class="fas fa-phone mr-1"></i>${d.phone}</span>` : ''}
+                            ${d.email ? `<span><i class="fas fa-envelope mr-1"></i>${d.email}</span>` : ''}
                         </div>
                     </td>
-                    <td class="px-4 py-2 text-purple-600 font-semibold">${item.cols[4]}</td>
-                    <td class="px-4 py-2 font-bold text-gray-900">${formatMoney(item.cols[5])}</td>
-                    <td class="px-4 py-2"><span class="px-2 py-1 rounded-md text-xs font-bold ${item.cols[6] === 'success' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.cols[6]}</span></td>
-                    <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[7]}</td>
+                    <td class="px-4 py-2 text-purple-600 font-semibold">${d.product || ''}</td>
+                    <td class="px-4 py-2 font-bold text-gray-900">${formatMoney(d.amount)}</td>
+                    <td class="px-4 py-2"><span class="px-2 py-1 rounded-md text-xs font-bold ${statusClass}">${d.status || ''}</span></td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">${d.order_code || ''}</td>
                     <td class="px-4 py-2 text-right">
                         <button onclick="editModal('orders', ${item.row})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteRow('orders', ${item.row})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
         function formatMoney(amount) {
@@ -244,8 +251,8 @@
         // -------------------------
         const config = {
             products: { title: "Sản phẩm", fields: ["Tên Sản Phẩm", "Giá (VNĐ)", "Mô tả", "Tồn kho"] },
-            customers: { title: "Khách hàng", fields: ["Thời gian", "Họ Tên", "Số điện thoại", "Địa chỉ", "Size", "Sản phẩm", "Giá tiền"] },
-            orders: { title: "Đơn hàng", fields: ["Ngày mua", "Khách hàng", "Sản phẩm", "Số tiền (VNĐ)", "Trạng thái", "Mã GD Ngân hàng"] }
+            customers: { title: "Khách hàng", fields: ["Thời gian", "Họ Tên", "Số điện thoại", "Email", "Địa chỉ", "Size", "Sản phẩm", "Giá tiền"] },
+            orders: { title: "Đơn hàng", fields: ["Ngày mua", "Khách hàng", "Số điện thoại", "Email", "Sản phẩm", "Số tiền (VNĐ)", "Trạng thái", "Mã GD"] }
         };
 
         function openModal(sheet, existingData = null, rowNum = null) {
