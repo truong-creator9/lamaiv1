@@ -87,8 +87,142 @@ const db = new sqlite3.Database(DB_FILE, (err) => {
         console.error('Error connecting to brain.db:', err.message);
     } else {
         console.log('Connected to the brain.db database.');
+        // Khởi tạo bảng email_queue để lưu trữ chuỗi email cần gửi
+        db.run(`
+            CREATE TABLE IF NOT EXISTS email_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id INTEGER,
+                email TEXT,
+                subject TEXT,
+                html TEXT,
+                scheduled_at DATETIME,
+                sent_at DATETIME,
+                status TEXT DEFAULT 'pending',
+                error TEXT
+            )
+        `);
     }
 });
+
+// --- Logic Phân tích & Lên lịch Chuỗi Email ---
+
+/**
+ * Phân tích nội dung file email_sequence.md thành 3 phần.
+ */
+function parseEmailSequence() {
+    const filePath = path.join(__dirname, 'email_sequence.md');
+    if (!fs.existsSync(filePath)) return null;
+    
+    const content = fs.readFileSync(filePath, 'utf8');
+    const sections = content.split('---');
+    
+    const parsed = sections.map(section => {
+        const subjectMatch = section.match(/\*\*Tiêu đề:\*\*\s*(.*)/);
+        const subject = subjectMatch ? subjectMatch[1].trim() : 'Chào mừng đến với LAMAI';
+        
+        const bodies = section.split(/\*\*Tiêu đề:\*\*.*?\n/s);
+        let body = bodies.length > 1 ? bodies[1] : section;
+        body = body.trim();
+        
+        return { subject, body };
+    }).filter(s => s.body.length > 50); // Lọc bỏ các phần thừa nếu có
+
+    return parsed;
+}
+
+/**
+ * Lên lịch gửi 3 email cho khách hàng.
+ */
+async function scheduleEmailSequence(customerId, email, name, isTestMode = false) {
+    const emails = parseEmailSequence();
+    if (!emails || emails.length < 3) {
+        console.error('❌ Không thể tải hoặc phân tích file email_sequence.md (Yêu cầu ít nhất 3 phần).');
+        return;
+    }
+
+    const vnTime = new Date(new Date().getTime() + (7 * 3600000));
+    
+    const schedules = [
+        { email: emails[0], delayMs: 0 }, // Email 1: Ngay lập tức
+        { email: emails[1], delayMs: isTestMode ? 5000 : 2 * 24 * 60 * 60 * 1000 }, // Email 2: 2 ngày (hoặc 5s nếu test)
+        { email: emails[2], delayMs: isTestMode ? 10000 : 3 * 24 * 60 * 60 * 1000 } // Email 3: 3 ngày (hoặc 10s nếu test)
+    ];
+
+    for (const item of schedules) {
+        const scheduledTime = new Date(vnTime.getTime() + item.delayMs);
+        const scheduledStr = scheduledTime.toISOString().replace('T', ' ').substring(0, 19);
+        
+        // Chuyển đổi nội dung Markdown sơ khai sang HTML cơ bản có style LAMAI
+        let htmlContent = item.email.body
+            .replace(/\n/g, '<br>')
+            .replace(/Chào Nàng,/g, `Chào ${name},`)
+            .replace(/Chào Nàng yêu của LAMAI ơi,/g, `Chào ${name} yêu của LAMAI ơi,`)
+            .replace(/\[Link Trang Thanh Toán\]/g, '<a href="https://www.lamai.vn/#checkoutForm" style="display:inline-block; padding:12px 24px; background-color:#ea754d; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">Sở hữu ngay thiết kế của riêng Nàng</a>');
+
+        const fullHtml = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 12px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #ea754d; margin: 0;">LAMAI</h2>
+                    <p style="font-size: 12px; color: #999; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px;">Thương Hiệu Thời Trang Thiết Kế</p>
+                </div>
+                <div style="font-size: 16px;">
+                    ${htmlContent}
+                </div>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+                <div style="font-size: 12px; color: #777; text-align: center;">
+                    © 2025 LAMAI - Thương hiệu thời trang thiết kế cao cấp.<br>
+                    Website: www.lamai.vn | Hotline: 0393096645
+                </div>
+            </div>
+        `;
+
+        db.run(`
+            INSERT INTO email_queue (customer_id, email, subject, html, scheduled_at, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [customerId, email, item.email.subject, fullHtml, scheduledStr, 'pending']);
+    }
+
+    console.log(`✅ Đã lên lịch chuỗi 3 email cho ${email} (Test mode: ${isTestMode})`);
+}
+
+/**
+ * Worker xử lý hàng đợi email.
+ */
+async function processEmailQueue() {
+    const now = new Date(new Date().getTime() + (7 * 3600000));
+    const nowStr = now.toISOString().replace('T', ' ').substring(0, 19);
+
+    db.all(`
+        SELECT * FROM email_queue 
+        WHERE status = 'pending' AND scheduled_at <= ? 
+        LIMIT 5
+    `, [nowStr], async (err, rows) => {
+        if (err || !rows || rows.length === 0) return;
+
+        for (const row of rows) {
+            // Đánh dấu là đang gửi để tránh gửi trùng
+            db.run(`UPDATE email_queue SET status = 'sending' WHERE id = ?`, [row.id]);
+
+            const result = await sendResendEmail({
+                to: row.email,
+                subject: row.subject,
+                html: row.html
+            });
+
+            const sentAt = getVNTime();
+            if (result.success) {
+                db.run(`UPDATE email_queue SET status = 'sent', sent_at = ? WHERE id = ?`, [sentAt, row.id]);
+            } else {
+                db.run(`UPDATE email_queue SET status = 'error', error = ? WHERE id = ?`, [JSON.stringify(result.error), row.id]);
+            }
+        }
+    });
+}
+
+// Chạy worker mỗi phút
+setInterval(processEmailQueue, 60000);
+// Chạy ngay lập tức một lần sau 5 giây khi khởi động
+setTimeout(processEmailQueue, 5000);
 
 // GET /api/admin: Xử lý polling & lấy dữ liệu cho admin panel
 app.get('/api/admin', (req, res) => {
@@ -291,23 +425,13 @@ app.post('/api/waitlist', (req, res) => {
             console.error('Error in /api/waitlist:', err);
             return res.status(500).json({ error: 'Database error' });
         }
-        res.status(200).json({ message: 'Thông tin đăng ký khảo sát đã được ghi nhận vào hệ thống.' });
+        res.status(200).json({ message: 'Thông tin đăng ký khảo sát đã được ghi nhận. Hệ thống sẽ gửi chuỗi email chăm sóc đến bạn sớm nhất.' });
 
-        // Scenario A: Gửi email Chào mừng ngay khi điền Form Waitlist
+        const customerId = this.lastID;
+        // Kích hoạt chuỗi email tự động (Welcome -> Nurture -> Sales)
         if (email) {
-            sendResendEmail({
-                to: email,
-                subject: 'Chào mừng bạn đến với LAMAI ✨',
-                html: `
-                    <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                        <h2>Chào ${name},</h2>
-                        <p>Cảm ơn bạn đã quan tâm đến <strong>LAMAI</strong> và bộ sưu tập mới của chúng tôi.</p>
-                        <p>Chúng tôi đã ghi nhận thông tin của bạn vào danh sách chờ. Khi bộ sưu tập chính thức ra mắt, bạn sẽ là người nhận được thông báo sớm nhất cùng những ưu đãi đặc biệt.</p>
-                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-                        <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
-                    </div>
-                `
-            });
+            const isTestMode = email.includes('+test');
+            scheduleEmailSequence(customerId, email, name, isTestMode);
         }
     });
 });
