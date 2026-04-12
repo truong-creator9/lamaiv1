@@ -4,10 +4,56 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const http = require('http');
 const https = require('https');
+const fs = require('fs');
+const { Resend } = require('resend');
 
 const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(__dirname, 'brain.db');
+
+// --- Cấu hình Resend Email ---
+let resend;
+const RESEND_CONFIG_PATH = path.join(__dirname, 'resend_config.txt');
+try {
+    if (fs.existsSync(RESEND_CONFIG_PATH)) {
+        const apiKey = fs.readFileSync(RESEND_CONFIG_PATH, 'utf8').trim();
+        resend = new Resend(apiKey);
+        console.log('✅ Resend đã được khởi tạo thành công.');
+    } else {
+        console.warn('⚠️ Không tìm thấy file resend_config.txt. Email sẽ không được gửi.');
+    }
+} catch (err) {
+    console.error('❌ Lỗi khi đọc file cấu hình Resend:', err.message);
+}
+
+// Hàm gửi email chung qua Resend
+async function sendResendEmail({ to, subject, html }) {
+    if (!resend) {
+        console.warn('[Resend] Bỏ qua gửi mail vì Resend chưa được cấu hình.');
+        return { success: false, message: 'Resend not configured' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'LAMAI <onboarding@resend.dev>', // Email mặc định của Resend để test
+            to: Array.isArray(to) ? to : [to],
+            subject: subject,
+            html: html,
+        });
+
+        if (error) {
+            console.error('[Resend Error]', error);
+            return { success: false, error };
+        }
+
+        console.log('[Resend Success] Email đã gửi:', data.id);
+        return { success: true, data };
+    } catch (err) {
+        console.error('[Resend Crash]', err.message);
+        return { success: false, error: err.message };
+    }
+}
+// -----------------------------
 
 // URL Render trực tiếp (bypass Cloudflare WAF đang chặn SePay)
 const RENDER_DIRECT_URL = 'https://lamaiv1.onrender.com';
@@ -197,22 +243,40 @@ app.get('/api/admin/check_payment', (req, res) => {
 app.post('/api/admin/mark_paid', (req, res) => {
     const { phone, order_id } = req.body;
     
-    // Nếu có order_id thì update theo ID, nếu không thì tìm theo phone
-    const query = order_id 
-        ? `UPDATE orders SET status = 'success' WHERE id = ? AND status = 'pending'`
-        : `UPDATE orders SET status = 'success' WHERE id = (
-            SELECT orders.id FROM orders 
-            JOIN customers ON orders.customer_id = customers.id 
-            WHERE customers.phone = ? AND orders.status = 'pending'
-            ORDER BY orders.id DESC LIMIT 1
-          )`;
-    const param = order_id ? [order_id] : [phone];
-    
-    db.run(query, param, function(err) {
+    db.get(`
+        SELECT orders.id, customers.name, customers.email, customers.phone 
+        FROM orders 
+        JOIN customers ON orders.customer_id = customers.id 
+        WHERE ${order_id ? 'orders.id = ?' : 'customers.phone = ?'} AND orders.status = 'pending'
+        ORDER BY orders.id DESC LIMIT 1
+    `, [order_id || phone], (err, row) => {
         if (err) return res.status(500).json({ success: false, error: err.message });
-        if (this.changes === 0) return res.json({ success: false, message: 'Không tìm thấy đơn pending' });
-        console.log(`[ManualPay] ✅ Đã mark paid cho ${phone || 'order#' + order_id}`);
-        res.json({ success: true, message: 'Đã cập nhật trạng thái thanh toán thành công' });
+        if (!row) return res.json({ success: false, message: 'Không tìm thấy đơn pending' });
+
+        db.run(`UPDATE orders SET status = 'success' WHERE id = ?`, [row.id], function(updateErr) {
+            if (updateErr) return res.status(500).json({ success: false, error: updateErr.message });
+            
+            console.log(`[ManualPay] ✅ Đã mark paid cho unit ${row.phone || 'order#' + row.id}`);
+            res.json({ success: true, message: 'Đã cập nhật trạng thái thanh toán thành công' });
+
+            // Scenario B: Gửi email Xác nhận đơn hàng thành công
+            if (row.email) {
+                sendResendEmail({
+                    to: row.email,
+                    subject: 'Xác nhận: Thanh toán thành công! 🎉',
+                    html: `
+                        <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                            <h2>Chào ${row.name},</h2>
+                            <p>Chúc mừng! Giao dịch của bạn đã được xác nhận thành công.</p>
+                            <p>Đơn hàng <strong>#${row.id}</strong> của bạn đã chuyển sang trạng thái <strong>Đã thanh toán</strong> và đang được chúng tôi chuẩn bị để giao cho bạn sớm nhất.</p>
+                            <p>Cảm ơn bạn đã tin tưởng và lựa chọn LAMAI.</p>
+                            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                            <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
+                        </div>
+                    `
+                });
+            }
+        });
     });
 });
 
@@ -228,6 +292,23 @@ app.post('/api/waitlist', (req, res) => {
             return res.status(500).json({ error: 'Database error' });
         }
         res.status(200).json({ message: 'Thông tin đăng ký khảo sát đã được ghi nhận vào hệ thống.' });
+
+        // Scenario A: Gửi email Chào mừng ngay khi điền Form Waitlist
+        if (email) {
+            sendResendEmail({
+                to: email,
+                subject: 'Chào mừng bạn đến với LAMAI ✨',
+                html: `
+                    <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                        <h2>Chào ${name},</h2>
+                        <p>Cảm ơn bạn đã quan tâm đến <strong>LAMAI</strong> và bộ sưu tập mới của chúng tôi.</p>
+                        <p>Chúng tôi đã ghi nhận thông tin của bạn vào danh sách chờ. Khi bộ sưu tập chính thức ra mắt, bạn sẽ là người nhận được thông báo sớm nhất cùng những ưu đãi đặc biệt.</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                        <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
+                    </div>
+                `
+            });
+        }
     });
 });
 
@@ -261,6 +342,24 @@ app.post('/api/order', (req, res) => {
                     return res.status(500).json({ error: 'Lỗi ghi đơn hàng.' });
                 }
                 res.status(200).json({ message: 'Đơn hàng đã được ghi nhận.' });
+
+                // Scenario A: Gửi email Chào mừng ngay khi Đặt hàng
+                if (email) {
+                    sendResendEmail({
+                        to: email,
+                        subject: 'Chào mừng bạn đến với bộ sưu tập LAMAI 👗',
+                        html: `
+                            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                                <h2>Chào ${fullname},</h2>
+                                <p>Cảm ơn bạn đã lựa chọn <strong>LAMAI</strong>.</p>
+                                <p>Đơn đặt hàng của bạn cho sản phẩm <strong>${product || 'Bộ sưu tập mới'}</strong> đã được ghi nhận thành công.</p>
+                                <p>Hệ thống đang chờ xác nhận thanh toán để hoàn tất đơn hàng. Chúng tôi sẽ gửi email xác nhận cho bạn ngay khi giao dịch hoàn tất.</p>
+                                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                                <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
+                            </div>
+                        `
+                    });
+                }
             });
         });
     });
@@ -332,7 +431,7 @@ app.post('/webhook/sepay', (req, res) => {
 
     // Tìm đơn hàng hợp lệ đang "pending" của SĐT này
     db.get(`
-        SELECT orders.id, orders.amount 
+        SELECT orders.id, orders.amount, customers.name, customers.email 
         FROM orders 
         JOIN customers ON orders.customer_id = customers.id 
         WHERE customers.phone = ? AND orders.status = 'pending'
@@ -359,7 +458,25 @@ app.post('/webhook/sepay', (req, res) => {
                     return res.status(500).json({ error: 'DB Update Error' });
                 }
                 console.log(`[SePay Webhook] ✅ Cập nhật THÀNH CÔNG đơn #${row.id} cho SĐT: ${phone}`);
-                return res.status(200).json({ success: true, message: 'Order marked as paid' });
+                res.status(200).json({ success: true, message: 'Order marked as paid' });
+
+                // Scenario B: Gửi email Xác nhận đơn hàng thành công qua Webhook
+                if (row.email) {
+                    sendResendEmail({
+                        to: row.email,
+                        subject: 'Xác nhận: Thanh toán thành công! 🎉',
+                        html: `
+                            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                                <h2>Chào ${row.name},</h2>
+                                <p>LAMAI xin xác nhận đã nhận được thanh toán cho đơn hàng <strong>#${row.id}</strong> của bạn.</p>
+                                <p>Đơn hàng sẽ được xử lý và vận chuyển đến bạn trong thời gian sớm nhất.</p>
+                                <p>Cảm ơn bạn đã ủng hộ chúng tôi!</p>
+                                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                                <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
+                            </div>
+                        `
+                    });
+                }
             }
         );
     });
