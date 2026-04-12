@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thành công | LAMAI</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f9a8d4',
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d',
+                            800: '#9d174d',
+                            900: '#831843',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+    <div class="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl shadow-xl text-center border-t-8 border-brand-500 transform transition-all hover:scale-[1.01]">
+        
+        <!-- Icon -->
+        <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-100 mb-6 drop-shadow-sm">
+            <i class="fas fa-check text-5xl text-green-500 animate-bounce"></i>
+        </div>
+        
+        <!-- Header -->
+        <h2 class="text-3xl font-serif font-bold text-gray-900 mb-4">Thanh toán thành công!</h2>
+        
+        <!-- Body -->
+        <p class="text-gray-600 mb-8 leading-relaxed">
+            Đơn hàng của bạn đã được ghi nhận và sẽ được giao ngay lập tức. Cảm ơn bạn đã tin tưởng và mua hàng tại <strong class="text-brand-600 font-bold">LAMAI</strong>.
+        </p>
+
+        <!-- Divider -->
+        <hr class="border-gray-100 mb-8" />
+        
+        <!-- Button -->
+        <a href="index.html" class="inline-block w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 rounded-xl transition duration-300 shadow-md hover:shadow-lg">
+            Quay lại trang chủ <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+        
+        <!-- Footer text -->
+        <p class="mt-6 text-xs text-gray-400">Nếu bạn cần hỗ trợ, vui lòng liên hệ hotline: 090 123 4567</p>
+
+    </div>
+
+</body>
+</html>

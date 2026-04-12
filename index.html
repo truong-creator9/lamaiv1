@@ -515,6 +515,14 @@
 
                     <div>
                         <div class="relative flex items-center">
+                            <i class="fas fa-envelope absolute left-4 text-gray-400"></i>
+                            <input id="email" name="email" type="email" placeholder="Email của bạn (*)" required
+                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all dark:text-white placeholder-gray-400">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="relative flex items-center">
                             <i class="fas fa-phone-alt absolute left-4 text-gray-400"></i>
                             <input id="phone" name="phone" type="tel" placeholder="Nhập Số điện thoại (*)" required
                                 pattern="[0-9]{9,11}"
@@ -624,6 +632,13 @@
                         <div class="relative flex items-center">
                             <i class="fas fa-user absolute left-4 text-gray-400"></i>
                             <input name="name" type="text" placeholder="Tên của bạn (*)" required class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all dark:text-white placeholder-gray-400">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="relative flex items-center">
+                            <i class="fas fa-envelope absolute left-4 text-gray-400"></i>
+                            <input name="email" type="email" placeholder="Email của bạn (*)" required class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all dark:text-white placeholder-gray-400">
                         </div>
                     </div>
 
@@ -928,29 +943,19 @@
 
             // Gửi dữ liệu bằng fetch (no-cors mode để tránh lỗi Cross-Origin nếu chưa cấu hình header)
             // LƯU Ý: Nếu thay bằng URL thực, hãy sửa biến GOOGLE_SHEET_WEB_APP_URL ở trên
-            if (GOOGLE_SHEET_WEB_APP_URL === 'YOUR_GOOGLE_SCRIPT_WEB_APP_URL_HERE') {
-                alert('Vui lòng cấu hình URL Google Script Web App trong source code!');
-                setTimeout(() => {
-                    btnText.classList.remove('opacity-0');
-                    btnSubText.classList.remove('opacity-0');
-                    btnLoading.classList.add('hidden');
-                    submitBtn.disabled = false;
-                }, 500);
-                return;
-            }
+            // Xóa biến GOOGLE_SHEET_WEB_APP_URL vì không cần nữa
 
-            // Sử dụng URLSearchParams thay vì FormData thông thường để e.parameter trong Google Apps Script bắt được dữ liệu
-            const urlEncodedData = new URLSearchParams(formData).toString();
+            const jsonData = Object.fromEntries(formData.entries());
 
-            fetch(GOOGLE_SHEET_WEB_APP_URL, {
+            fetch('http://localhost:3000/api/order', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/json'
                 },
-                body: urlEncodedData,
-                mode: 'no-cors' // Tắt cors mode để submit ẩn mượt mà
+                body: JSON.stringify(jsonData)
             })
                 .then(response => {
+                    if(!response.ok) throw new Error('Network error');
                     // Tạo mã QR động với nội dung duy nhất theo SĐT
                     const phone = formData.get('phone');
                     
@@ -984,15 +989,14 @@
                             clearInterval(checkInterval);
                             return;
                         }
-                        // Gọi WebApp dạng GET để kiểm tra trạng thái
-                        fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=check_payment&phone=${phone}`)
+                        // Gọi API nội bộ dạng GET để kiểm tra trạng thái
+                        fetch(`http://localhost:3000/api/admin/check_payment?phone=${phone}`)
                             .then(res => res.json())
                             .then(data => {
                                 if(data && data.status === 'paid') {
                                     clearInterval(checkInterval);
-                                    // Ẩn mã QR, hiện thông báo thành công!
-                                    document.getElementById('qrCodeSection').classList.add('hidden');
-                                    document.getElementById('paymentSuccessSection').classList.remove('hidden');
+                                    // Chuyển hướng sang trang thành công
+                                    window.location.href = 'success.html';
                                 }
                             })
                             .catch(err => {
@@ -1028,21 +1032,18 @@
                 waitlistSubmitBtn.disabled = true;
 
                 const formData = new FormData(waitlistForm);
-                const gFormData = new URLSearchParams();
-                
-                // Trích xuất dữ liệu gắn vào ID của Google Forms
-                gFormData.append('entry.1863252128', formData.get('name') || ''); // Tên
-                gFormData.append('entry.132364734', formData.get('phone') || ''); // SĐT
-                gFormData.append('entry.1270459397', formData.get('pain_points') || ''); // Khó khăn
-                gFormData.append('entry.1025083529', formData.get('priorities') || ''); // Ưu tiên
-                gFormData.append('entry.913898029', formData.get('size_preference') || ''); // Size
+                const jsonData = Object.fromEntries(formData.entries());
 
-                fetch('https://docs.google.com/forms/d/e/1FAIpQLSdJt8N1D0r_AEvqJ1t52L-jB-G0Wv4D10S942y9_Zk8G7nOxg/formResponse', {
+                fetch('http://localhost:3000/api/waitlist', {
                     method: 'POST',
-                    body: gFormData,
-                    mode: 'no-cors'
-                }).then(() => {
-                    alert('✨ Cảm ơn Nàng! Thông tin của Nàng đã được gửi thành công, nhân viên LAMAI sẽ sớm liên hệ.');
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jsonData)
+                }).then(response => {
+                    if (response.ok) {
+                        alert('✨ Cảm ơn Nàng! Thông tin của Nàng đã được gửi thành công, nhân viên LAMAI sẽ sớm liên hệ.');
+                    } else {
+                        alert('✨ Gửi thành công! Rất mong được phục vụ Nàng.');
+                    }
                     waitlistForm.reset();
                 }).catch(() => {
                     alert('✨ Gửi thành công! Rất mong được phục vụ Nàng.');
@@ -1253,6 +1254,7 @@
             const isHidden = chatbotWindow.classList.contains('translate-y-8');
             if (isHidden) {
                 chatbotWindow.classList.remove('translate-y-8', 'opacity-0', 'scale-95', 'pointer-events-none');
+                chatbotWindow.classList.add('pointer-events-auto');
                 
                 const pingWrap = chatbotToggle.querySelector('.animate-ping')?.parentElement;
                 if(pingWrap) pingWrap.remove(); // Remove unread badge permanently once opened
@@ -1271,6 +1273,7 @@
                     botInitialized = true;
                 }
             } else {
+                chatbotWindow.classList.remove('pointer-events-auto');
                 chatbotWindow.classList.add('translate-y-8', 'opacity-0', 'scale-95', 'pointer-events-none');
                 chatbotToggle.classList.remove('scale-0'); // Show toggle back
             }

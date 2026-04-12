@@ -116,7 +116,7 @@
 
     <script>
         // APP CONFIGURL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwGLexLRSo3to0KjaU5rDRAnmi9fOQltx51DZpq-ICaFmhNh7Cn2805vVRjaAmYq0W1/exec';
+        const APPS_SCRIPT_URL = 'http://localhost:3000/api/admin';
         
         let allData = {
             products: [], customers: [], orders: []
@@ -158,13 +158,14 @@
                 
                 const [resP, resC, resO] = await Promise.all([p, c, o]);
                 
-                if (resP.success) allData.products = resP.data;
-                if (resC.success) allData.customers = resC.data;
-                if (resO.success) allData.orders = resO.data;
+                if (resP && resP.success) allData.products = resP.data;
+                if (resC && resC.success) allData.customers = resC.data;
+                if (resO && resO.success) allData.orders = resO.data;
 
                 renderTables();
             } catch (err) {
-                Swal.fire('Lỗi Tải Dữ Liệu', 'Không thể kết nối được tới Google Sheets. Vui lòng kiểm tra lại cấu hình.', 'error');
+                console.error(err);
+                Swal.fire('Lỗi Tải Dữ Liệu', 'Không thể kết nối được tới Database. Vui lòng kiểm tra lại cấu hình.', 'error');
             }
             hideLoader();
         }
@@ -382,7 +383,7 @@
         function deleteRow(sheet, rowNum) {
             Swal.fire({
                 title: 'Bạn có chắc chắn muốn xóa?',
-                text: "Dữ liệu sẽ bị xóa VĨNH VIỄN khỏi Google Sheets và không thể khôi phục!",
+                text: "Dữ liệu sẽ bị xóa VĨNH VIỄN khỏi Cơ sở dữ liệu và không thể khôi phục!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
