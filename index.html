@@ -605,6 +605,10 @@
                         <p>Nội dung: <span id="qrTransferDesc" class="font-bold text-brand-600"></span></p>
                     </div>
                     
+                    <button type="button" id="manualPayBtn" class="hidden mt-4 w-full bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition" onclick="checkPaymentManual()">
+                        ✅ Tôi đã chuyển khoản rồi — Kiểm tra thanh toán
+                    </button>
+                    <p id="pollingStatus" class="mt-2 text-xs text-gray-400 text-center"></p>
                     <button type="button" onclick="window.location.reload()" class="mt-4 text-sm font-semibold text-gray-500 hover:text-brand-500 underline">
                         Quay lại xem sản phẩm khác
                     </button>
@@ -993,30 +997,40 @@
                     // ============================================
                     // POLLING TỰ ĐỘNG KIỂM TRA THANH TOÁN SEPAY
                     // ============================================
+                    
+                    // Lưu phone vào window để function checkPaymentManual() có thể dùng
+                    window._pendingPhone = phone;
+                    
+                    // Hiện nút manual sau 15 giây nếu chưa tự động redirect
+                    setTimeout(() => {
+                        const btn = document.getElementById('manualPayBtn');
+                        if (btn) btn.classList.remove('hidden');
+                    }, 15000);
+                    
+                    const pollingStatus = document.getElementById('pollingStatus');
                     let checkCount = 0;
-                    const maxChecks = 120; // Kiểm tra trong 10 phút (mỗi 5s = 120 lần)
-                    const checkInterval = setInterval(() => {
+                    const maxChecks = 200; // 10 phút (3s x 200)
+                    
+                    function doPoll() {
                         checkCount++;
-                        if(checkCount > maxChecks) {
-                            clearInterval(checkInterval);
-                            return;
-                        }
-                        // Gọi API nội bộ dạng GET để kiểm tra trạng thái
+                        if (checkCount > maxChecks) return;
+                        if (pollingStatus) pollingStatus.textContent = `⏳ Đang chờ xác nhận thanh toán... (${checkCount})`;
+                        
                         fetch(`/api/admin/check_payment?phone=${phone}`)
-                            .then(res => res.json())
+                            .then(r => r.json())
                             .then(data => {
-                                if(data && data.status === 'paid') {
-                                    clearInterval(checkInterval);
-                                    // Chuyển hướng sang trang thành công
-                                    window.location.href = 'success.html';
+                                if (data && data.status === 'paid') {
+                                    if (pollingStatus) pollingStatus.textContent = '✅ Xác nhận thành công! Đang chuyển trang...';
+                                    setTimeout(() => { window.location.href = 'success.html'; }, 500);
+                                } else {
+                                    setTimeout(doPoll, 3000); // Poll mỗi 3 giây
                                 }
                             })
-                            .catch(err => {
-                                // Bỏ qua lỗi mạng trong quá trình polling
-                            });
-                    }, 5000); // 5 giây kiểm tra 1 lần
-
-                    alert('🎉 Đơn hàng đã được ghi nhận! Vui lòng quét mã QR xuất hiện trên màn hình để thanh toán.');
+                            .catch(() => setTimeout(doPoll, 3000));
+                    }
+                    
+                    // Bắt đầu poll sau 2 giây
+                    setTimeout(doPoll, 2000);
                 })
                 .catch(error => {
                     alert('Có lỗi xảy ra trong quá trình gửi đơn hàng. Xin vui lòng thử lại sau hoặc gọi hotline!');
@@ -1385,6 +1399,38 @@
                 processUserCustomMessage();
             }
         });
+
+        // ============================================
+        // MANUAL PAYMENT CHECK (Fallback khi SePay webhook bị block)
+        // ============================================
+        function checkPaymentManual() {
+            const phone = window._pendingPhone;
+            if (!phone) {
+                alert('Không tìm thấy thông tin đơn hàng. Vui lòng tải lại trang.');
+                return;
+            }
+            
+            const btn = document.getElementById('manualPayBtn');
+            const status = document.getElementById('pollingStatus');
+            if (btn) btn.disabled = true;
+            if (status) status.textContent = '⏳ Đang kiểm tra...';
+            
+            fetch(`/api/admin/check_payment?phone=${phone}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.status === 'paid') {
+                        if (status) status.textContent = '✅ Xác nhận thành công!';
+                        setTimeout(() => { window.location.href = 'success.html'; }, 500);
+                    } else {
+                        if (status) status.textContent = '⚠️ Chưa nhận được xác nhận thanh toán. Thử lại sau 30 giây.';
+                        if (btn) { btn.disabled = false; }
+                    }
+                })
+                .catch(() => {
+                    if (status) status.textContent = '❌ Lỗi kết nối. Vui lòng thử lại.';
+                    if (btn) btn.disabled = false;
+                });
+        }
 
 
     </script>

@@ -237,6 +237,36 @@ app.post('/api/order', (req, res) => {
     });
 });
 
+// GET /webhook/sepay: SePay có thể gọi GET để verify endpoint hoạt động
+app.get('/webhook/sepay', (req, res) => {
+    res.status(200).json({ success: true, message: 'SePay webhook endpoint is active' });
+});
+
+// GET /api/webhook-test: Test thuần tuý — gọi để simulate webhook và kiểm tra logic
+app.get('/api/webhook-test', (req, res) => {
+    const { phone, amount } = req.query;
+    if (!phone) return res.json({ error: 'Missing phone param' });
+    
+    db.get(`
+        SELECT orders.id, orders.amount, orders.status
+        FROM orders 
+        JOIN customers ON orders.customer_id = customers.id 
+        WHERE customers.phone = ? AND orders.status = 'pending'
+        ORDER BY orders.id DESC LIMIT 1
+    `, [phone], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.json({ found: false, message: 'No pending order for ' + phone });
+        
+        db.run(`UPDATE orders SET status = 'success', amount = ? WHERE id = ?`,
+            [parseInt(amount) || row.amount, row.id],
+            function(e) {
+                if (e) return res.status(500).json({ error: e.message });
+                res.json({ success: true, orderId: row.id, phone, message: 'Order marked as paid (test)' });
+            }
+        );
+    });
+});
+
 // POST /webhook/sepay: Nhận dữ liệu webhook từ SePay
 app.post('/webhook/sepay', (req, res) => {
     const payload = req.body;
