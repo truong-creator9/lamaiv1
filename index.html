@@ -21,6 +21,18 @@
     <!-- Icons (FontAwesome) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <style>
+        /* Đảm bảo chatbot không bị đè hoặc khoá tương tác trên production */
+        #chatbotWindow.chatbot-active {
+            pointer-events: auto !important;
+            z-index: 99999 !important;
+            display: flex !important;
+        }
+        #chatbotWindow.chatbot-active * {
+            pointer-events: auto !important;
+        }
+    </style>
+
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -1254,7 +1266,7 @@
             const isHidden = chatbotWindow.classList.contains('translate-y-8');
             if (isHidden) {
                 chatbotWindow.classList.remove('translate-y-8', 'opacity-0', 'scale-95', 'pointer-events-none');
-                chatbotWindow.classList.add('pointer-events-auto');
+                chatbotWindow.classList.add('pointer-events-auto', 'chatbot-active');
                 chatbotWindow.style.pointerEvents = 'auto';
                 chatbotWindow.style.setProperty('pointer-events', 'auto', 'important');
                 chatbotWindow.style.zIndex = '9999';
@@ -1276,7 +1288,7 @@
                     botInitialized = true;
                 }
             } else {
-                chatbotWindow.classList.remove('pointer-events-auto');
+                chatbotWindow.classList.remove('pointer-events-auto', 'chatbot-active');
                 chatbotWindow.classList.add('translate-y-8', 'opacity-0', 'scale-95', 'pointer-events-none');
                 chatbotWindow.style.pointerEvents = 'none';
                 chatbotWindow.style.setProperty('pointer-events', 'none', 'important');

@@ -7,6 +7,14 @@ const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(__dirname, 'brain.db');
 
+// Hàm tạo local time VN chuẩn YYYY-MM-DD HH:MM:SS
+function getVNTime() {
+    const d = new Date();
+    const vnTime = new Date(d.toLocaleString('en-US', {timeZone: 'Asia/Ho_Chi_Minh'}));
+    const pad = n => n.toString().padStart(2, '0');
+    return `${vnTime.getFullYear()}-${pad(vnTime.getMonth()+1)}-${pad(vnTime.getDate())} ${pad(vnTime.getHours())}:${pad(vnTime.getMinutes())}:${pad(vnTime.getSeconds())}`;
+}
+
 app.use(cors());
 app.use(express.json());
 app.use(express.text({ type: 'text/plain' })); // Support text/plain from admin fetch
@@ -161,9 +169,9 @@ app.post('/api/admin', (req, res) => {
 app.post('/api/waitlist', (req, res) => {
     const { name, email, phone, pain_points, priorities, size_preference } = req.body;
     db.run(`
-        INSERT INTO customers (name, email, phone, pain_points, priorities, size_preference) 
-        VALUES (?, ?, ?, ?, ?, ?)
-    `, [name, email, phone, pain_points, priorities, size_preference], function (err) {
+        INSERT INTO customers (registration_date, name, email, phone, pain_points, priorities, size_preference) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [getVNTime(), name, email, phone, pain_points, priorities, size_preference], function (err) {
         if (err) {
             console.error('Error in /api/waitlist:', err);
             return res.status(500).json({ error: 'Database error' });
@@ -179,9 +187,9 @@ app.post('/api/order', (req, res) => {
     
     // Tạo record khách hàng
     db.run(`
-        INSERT INTO customers (name, email, phone, address, size_preference) 
-        VALUES (?, ?, ?, ?, ?)
-    `, [fullname, email, phone, address, size], function (err) {
+        INSERT INTO customers (registration_date, name, email, phone, address, size_preference) 
+        VALUES (?, ?, ?, ?, ?, ?)
+    `, [getVNTime(), fullname, email, phone, address, size], function (err) {
         if (err) {
             console.error('Error creating customer in /api/order:', err);
             return res.status(500).json({ error: 'Lỗi ghi khách hàng.' });
@@ -194,9 +202,9 @@ app.post('/api/order', (req, res) => {
             
             // Tạo record đặt hàng
             db.run(`
-                INSERT INTO orders (customer_id, product_id, amount, status, address, size) 
-                VALUES (?, ?, ?, ?, ?, ?)
-            `, [customerId, productId, amount, 'pending', address, size], function (err) {
+                INSERT INTO orders (customer_id, product_id, purchase_date, amount, status, address, size) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `, [customerId, productId, getVNTime(), amount, 'pending', address, size], function (err) {
                 if (err) {
                     console.error('Error creating order in /api/order:', err);
                     return res.status(500).json({ error: 'Lỗi ghi đơn hàng.' });
