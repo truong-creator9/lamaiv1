@@ -85,6 +85,10 @@ app.get('/api/admin', (req, res) => {
                 LEFT JOIN products p ON o.product_id = p.id 
                 ORDER BY o.id DESC
             `, (err, rows) => {
+                if (err) {
+                    console.error("Error fetching orders:", err);
+                    return res.status(500).json({ error: "Lỗi tải đơn hàng" });
+                }
                 const data = (rows || []).map(r => ({
                     row: r.id,
                     cols: [
@@ -192,7 +196,7 @@ app.post('/api/order', (req, res) => {
             db.run(`
                 INSERT INTO orders (customer_id, product_id, amount, status, address, size) 
                 VALUES (?, ?, ?, ?, ?, ?)
-            `, [customerId, productId, amount, 'Chờ Thanh Toán', address, size], function (err) {
+            `, [customerId, productId, amount, 'pending', address, size], function (err) {
                 if (err) {
                     console.error('Error creating order in /api/order:', err);
                     return res.status(500).json({ error: 'Lỗi ghi đơn hàng.' });
@@ -234,12 +238,12 @@ app.post('/webhook/sepay', (req, res) => {
         return res.status(200).json({ success: false, message: 'Phone not found in content' });
     }
 
-    // Tìm đơn hàng hợp lệ đang "Chờ Thanh Toán" của SĐT này
+    // Tìm đơn hàng hợp lệ đang "pending" của SĐT này
     db.get(`
         SELECT orders.id, orders.amount 
         FROM orders 
         JOIN customers ON orders.customer_id = customers.id 
-        WHERE customers.phone = ? AND orders.status = 'Chờ Thanh Toán'
+        WHERE customers.phone = ? AND orders.status = 'pending'
         ORDER BY orders.id DESC LIMIT 1
     `, [phone], (err, row) => {
         if (err) {
@@ -248,13 +252,13 @@ app.post('/webhook/sepay', (req, res) => {
         }
 
         if (!row) {
-            console.log(`[SePay Webhook] Không tìm thấy đơn hàng "Chờ Thanh Toán" cho SĐT ${phone}.`);
+            console.log(`[SePay Webhook] Không tìm thấy đơn hàng "pending" cho SĐT ${phone}.`);
             return res.status(200).json({ success: true, message: 'No pending order found' });
         }
 
         // Kiểm tra số tiền chuyển >= số tiền cần thanh toán
         if (amount >= row.amount) {
-            db.run(`UPDATE orders SET status = 'Đã Thanh Toán' WHERE id = ?`, [row.id], function(updateErr) {
+            db.run(`UPDATE orders SET status = 'success' WHERE id = ?`, [row.id], function(updateErr) {
                 if (updateErr) {
                     console.error('[SePay Webhook] Lỗi update trạng thái đơn hàng DB:', updateErr.message);
                     return res.status(500).json({ error: 'DB Update Error' });

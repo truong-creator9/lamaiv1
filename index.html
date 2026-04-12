@@ -1255,6 +1255,9 @@
             if (isHidden) {
                 chatbotWindow.classList.remove('translate-y-8', 'opacity-0', 'scale-95', 'pointer-events-none');
                 chatbotWindow.classList.add('pointer-events-auto');
+                chatbotWindow.style.pointerEvents = 'auto';
+                chatbotWindow.style.setProperty('pointer-events', 'auto', 'important');
+                chatbotWindow.style.zIndex = '9999';
                 
                 const pingWrap = chatbotToggle.querySelector('.animate-ping')?.parentElement;
                 if(pingWrap) pingWrap.remove(); // Remove unread badge permanently once opened
@@ -1275,6 +1278,9 @@
             } else {
                 chatbotWindow.classList.remove('pointer-events-auto');
                 chatbotWindow.classList.add('translate-y-8', 'opacity-0', 'scale-95', 'pointer-events-none');
+                chatbotWindow.style.pointerEvents = 'none';
+                chatbotWindow.style.setProperty('pointer-events', 'none', 'important');
+                chatbotWindow.style.zIndex = '-1';
                 chatbotToggle.classList.remove('scale-0'); // Show toggle back
             }
         }
