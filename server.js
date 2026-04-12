@@ -43,7 +43,7 @@ app.get('/api/admin', (req, res) => {
     const { action, sheet, phone } = req.query;
 
     if (action === 'check_payment') {
-        // Polling thanh toán SePay
+        // Polling thanh toán SePay - kiểm tra cả 2 trạng thái
         db.get(`
             SELECT orders.status 
             FROM orders 
@@ -52,7 +52,8 @@ app.get('/api/admin', (req, res) => {
             ORDER BY orders.id DESC LIMIT 1
         `, [phone], (err, row) => {
             if (err) return res.status(500).json({ status: 'error', message: err.message });
-            if (row && row.status === 'Đã Thanh Toán') {
+            // Kiểm tra cả 2 giá trị status có thể có
+            if (row && (row.status === 'success' || row.status === 'Đã Thanh Toán')) {
                 return res.json({ status: 'paid' });
             }
             res.json({ status: 'pending' });
@@ -166,6 +167,26 @@ app.post('/api/admin', (req, res) => {
     }
 });
 
+// GET /api/admin/check_payment: Polling kiểm tra trạng thái thanh toán
+app.get('/api/admin/check_payment', (req, res) => {
+    const { phone } = req.query;
+    if (!phone) return res.json({ status: 'error', message: 'Missing phone' });
+
+    db.get(`
+        SELECT orders.status 
+        FROM orders 
+        JOIN customers ON orders.customer_id = customers.id 
+        WHERE customers.phone = ? 
+        ORDER BY orders.id DESC LIMIT 1
+    `, [phone], (err, row) => {
+        if (err) return res.status(500).json({ status: 'error', message: err.message });
+        if (row && (row.status === 'success' || row.status === 'Đã Thanh Toán')) {
+            return res.json({ status: 'paid' });
+        }
+        res.json({ status: 'pending' });
+    });
+});
+
 // POST /api/waitlist: Xử lý đăng ký khảo sát / form đợi từ khách
 app.post('/api/waitlist', (req, res) => {
     const { name, email, phone, pain_points, priorities, size_preference } = req.body;
@@ -219,22 +240,23 @@ app.post('/api/order', (req, res) => {
 // POST /webhook/sepay: Nhận dữ liệu webhook từ SePay
 app.post('/webhook/sepay', (req, res) => {
     const payload = req.body;
-    console.log('[SePay Webhook] Nhận dữ liệu:', JSON.stringify(payload, null, 2));
+    console.log('[SePay Webhook] Payload nhận:', JSON.stringify(payload));
 
     let content = '';
-    let amount = 0;
+    let transferAmount = 0;
     
-    // Đôi khi webhook đẩy về 1 mảng nếu có tính chất batch
     if (Array.isArray(payload) && payload.length > 0) {
         content = payload[0].content || payload[0].description || '';
-        amount = payload[0].transferAmount || 0;
+        transferAmount = payload[0].transferAmount || payload[0].amount || 0;
     } else if (payload) {
         content = payload.content || payload.description || '';
-        amount = payload.transferAmount || 0;
+        transferAmount = payload.transferAmount || payload.amount || 0;
     }
 
+    console.log('[SePay Webhook] Nội dung:', content, '| Số tiền:', transferAmount);
+
     if (!content) {
-        console.error('[SePay Webhook] Bỏ qua vì không có nội dung chuyển khoản.');
+        console.error('[SePay Webhook] Bỏ qua - không có nội dung.');
         return res.status(200).json({ success: false, message: 'No content' });
     }
 
@@ -243,9 +265,11 @@ app.post('/webhook/sepay', (req, res) => {
     const phone = phoneMatch ? phoneMatch[0] : null;
 
     if (!phone) {
-        console.error('[SePay Webhook] Không tìm thấy SĐT trong nội dung:', content);
-        return res.status(200).json({ success: false, message: 'Phone not found in content' });
+        console.error('[SePay Webhook] Không tìm ra SĐT trong:', content);
+        return res.status(200).json({ success: false, message: 'Phone not found' });
     }
+
+    console.log('[SePay Webhook] Tìm kiếm đơn hàng cho SĐT:', phone);
 
     // Tìm đơn hàng hợp lệ đang "pending" của SĐT này
     db.get(`
@@ -256,29 +280,29 @@ app.post('/webhook/sepay', (req, res) => {
         ORDER BY orders.id DESC LIMIT 1
     `, [phone], (err, row) => {
         if (err) {
-            console.error('[SePay Webhook] Lỗi truy vấn DB:', err.message);
+            console.error('[SePay Webhook] Lỗi DB:', err.message);
             return res.status(500).json({ error: 'DB Error' });
         }
 
         if (!row) {
-            console.log(`[SePay Webhook] Không tìm thấy đơn hàng "pending" cho SĐT ${phone}.`);
+            console.log(`[SePay Webhook] Không tìm thấy đơn "pending" cho SĐT ${phone}`);
             return res.status(200).json({ success: true, message: 'No pending order found' });
         }
 
-        // Kiểm tra số tiền chuyển >= số tiền cần thanh toán
-        if (amount >= row.amount) {
-            db.run(`UPDATE orders SET status = 'success' WHERE id = ?`, [row.id], function(updateErr) {
+        console.log(`[SePay Webhook] Tìm thấy đơn hàng ID: ${row.id}, Số tiền đơn: ${row.amount}, Nhận được: ${transferAmount}`);
+
+        // Cập nhật trạng thái và ghi lại số tiền thực tế nhận được
+        db.run(`UPDATE orders SET status = 'success', amount = ? WHERE id = ?`, 
+            [transferAmount > 0 ? transferAmount : row.amount, row.id], 
+            function(updateErr) {
                 if (updateErr) {
-                    console.error('[SePay Webhook] Lỗi update trạng thái đơn hàng DB:', updateErr.message);
+                    console.error('[SePay Webhook] Lỗi update:', updateErr.message);
                     return res.status(500).json({ error: 'DB Update Error' });
                 }
-                console.log(`[SePay Webhook] ✅ Giao dịch THÀNH CÔNG cho SĐT: ${phone} (Đơn hàng ID: ${row.id})`);
+                console.log(`[SePay Webhook] ✅ Cập nhật THÀNH CÔNG đơn #${row.id} cho SĐT: ${phone}`);
                 return res.status(200).json({ success: true, message: 'Order marked as paid' });
-            });
-        } else {
-            console.log(`[SePay Webhook] ⚠️ Giao dịch THIẾU TIỀN cho SĐT: ${phone}. Cần: ${row.amount}, Chuyển: ${amount}`);
-            return res.status(200).json({ success: true, message: 'Insufficient amount' });
-        }
+            }
+        );
     });
 });
 
