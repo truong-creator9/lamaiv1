@@ -34,11 +34,21 @@ async function sendResendEmail({ to, subject, html }) {
     }
 
     try {
+        // Xử lý giới hạn Sandbox: Nếu gửi đến email có alias (+) mà Resend chưa verify domain
+        // Chúng ta sẽ tạm thời gửi về email gốc (bỏ phần +alias) để đảm bảo mail tới được hòm thư test
+        let targetEmail = Array.isArray(to) ? to[0] : to;
+        if (targetEmail.includes('+') && targetEmail.includes('@gmail.com')) {
+            const [local, domain] = targetEmail.split('@');
+            const baseLocal = local.split('+')[0];
+            targetEmail = `${baseLocal}@${domain}`;
+            console.log(`[Sandbox Mode] Chuyển hướng email từ ${to} sang ${targetEmail}`);
+        }
+
         const { data, error } = await resend.emails.send({
             from: 'LAMAI <onboarding@resend.dev>', // Email mặc định của Resend để test
-            to: Array.isArray(to) ? to : [to],
-            subject: subject,
-            html: html,
+            to: targetEmail,
+            subject,
+            html,
         });
 
         if (error) {
@@ -467,22 +477,9 @@ app.post('/api/order', (req, res) => {
                 }
                 res.status(200).json({ message: 'Đơn hàng đã được ghi nhận.' });
 
-                // Scenario A: Gửi email Chào mừng ngay khi Đặt hàng
+                // Kích hoạt chuỗi email tự động (Email Sequence) thay vì chỉ gửi 1 mail đơn lẻ
                 if (email) {
-                    sendResendEmail({
-                        to: email,
-                        subject: 'Chào mừng bạn đến với bộ sưu tập LAMAI 👗',
-                        html: `
-                            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                                <h2>Chào ${fullname},</h2>
-                                <p>Cảm ơn bạn đã lựa chọn <strong>LAMAI</strong>.</p>
-                                <p>Đơn đặt hàng của bạn cho sản phẩm <strong>${product || 'Bộ sưu tập mới'}</strong> đã được ghi nhận thành công.</p>
-                                <p>Hệ thống đang chờ xác nhận thanh toán để hoàn tất đơn hàng. Chúng tôi sẽ gửi email xác nhận cho bạn ngay khi giao dịch hoàn tất.</p>
-                                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-                                <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
-                            </div>
-                        `
-                    });
+                    scheduleEmailSequence(email, fullname);
                 }
             });
         });
