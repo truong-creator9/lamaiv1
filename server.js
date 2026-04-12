@@ -479,7 +479,8 @@ app.post('/api/order', (req, res) => {
 
                 // Kích hoạt chuỗi email tự động (Email Sequence) thay vì chỉ gửi 1 mail đơn lẻ
                 if (email) {
-                    scheduleEmailSequence(email, fullname);
+                    const isTestMode = email.includes('+test');
+                    scheduleEmailSequence(customerId, email, fullname, isTestMode);
                 }
             });
         });
