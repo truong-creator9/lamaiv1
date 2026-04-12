@@ -959,7 +959,7 @@
 
             const jsonData = Object.fromEntries(formData.entries());
 
-            fetch('http://localhost:3000/api/order', {
+            fetch('/api/order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1002,7 +1002,7 @@
                             return;
                         }
                         // Gọi API nội bộ dạng GET để kiểm tra trạng thái
-                        fetch(`http://localhost:3000/api/admin/check_payment?phone=${phone}`)
+                        fetch(`/api/admin/check_payment?phone=${phone}`)
                             .then(res => res.json())
                             .then(data => {
                                 if(data && data.status === 'paid') {
@@ -1046,7 +1046,7 @@
                 const formData = new FormData(waitlistForm);
                 const jsonData = Object.fromEntries(formData.entries());
 
-                fetch('http://localhost:3000/api/waitlist', {
+                fetch('/api/waitlist', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(jsonData)

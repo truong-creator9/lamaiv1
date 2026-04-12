@@ -116,7 +116,7 @@
 
     <script>
         // APP CONFIGURL
-        const APPS_SCRIPT_URL = 'http://localhost:3000/api/admin';
+        const APPS_SCRIPT_URL = '/api/admin';
         
         let allData = {
             products: [], customers: [], orders: []
@@ -351,7 +351,16 @@
         }
 
         function editModal(sheet, rowNum) {
-            const rowData = allData[sheet].find(i => i.row === rowNum).cols;
+            const item = allData[sheet].find(i => i.row === rowNum);
+            // products dùng cols[], customers/orders dùng data{} - cần convert sang array
+            let rowData;
+            if (item.cols) {
+                rowData = item.cols;
+            } else if (item.data) {
+                rowData = Object.values(item.data);
+            } else {
+                rowData = [];
+            }
             openModal(sheet, rowData, rowNum);
         }
 
@@ -380,7 +389,7 @@
             try {
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' }, // Avoid CORS Preflight Issues
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 }).then(r => r.json());
 
