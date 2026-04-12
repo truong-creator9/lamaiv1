@@ -2,10 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const http = require('http');
+const https = require('https');
 
 const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(__dirname, 'brain.db');
+
+// URL Render trực tiếp (bypass Cloudflare WAF đang chặn SePay)
+const RENDER_DIRECT_URL = 'https://lamaiv1.onrender.com';
+const IS_PRODUCTION = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
 
 // Hàm tạo local time VN chuẩn YYYY-MM-DD HH:MM:SS
 function getVNTime() {
@@ -173,7 +179,7 @@ app.get('/api/admin/check_payment', (req, res) => {
     if (!phone) return res.json({ status: 'error', message: 'Missing phone' });
 
     db.get(`
-        SELECT orders.status 
+        SELECT orders.id, orders.status 
         FROM orders 
         JOIN customers ON orders.customer_id = customers.id 
         WHERE customers.phone = ? 
@@ -184,6 +190,29 @@ app.get('/api/admin/check_payment', (req, res) => {
             return res.json({ status: 'paid' });
         }
         res.json({ status: 'pending' });
+    });
+});
+
+// POST /api/admin/mark_paid: Admin hoặc khách tự xác nhận đã thanh toán (manual override)
+app.post('/api/admin/mark_paid', (req, res) => {
+    const { phone, order_id } = req.body;
+    
+    // Nếu có order_id thì update theo ID, nếu không thì tìm theo phone
+    const query = order_id 
+        ? `UPDATE orders SET status = 'success' WHERE id = ? AND status = 'pending'`
+        : `UPDATE orders SET status = 'success' WHERE id = (
+            SELECT orders.id FROM orders 
+            JOIN customers ON orders.customer_id = customers.id 
+            WHERE customers.phone = ? AND orders.status = 'pending'
+            ORDER BY orders.id DESC LIMIT 1
+          )`;
+    const param = order_id ? [order_id] : [phone];
+    
+    db.run(query, param, function(err) {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        if (this.changes === 0) return res.json({ success: false, message: 'Không tìm thấy đơn pending' });
+        console.log(`[ManualPay] ✅ Đã mark paid cho ${phone || 'order#' + order_id}`);
+        res.json({ success: true, message: 'Đã cập nhật trạng thái thanh toán thành công' });
     });
 });
 

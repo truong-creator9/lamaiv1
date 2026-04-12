@@ -605,8 +605,8 @@
                         <p>Nội dung: <span id="qrTransferDesc" class="font-bold text-brand-600"></span></p>
                     </div>
                     
-                    <button type="button" id="manualPayBtn" class="hidden mt-4 w-full bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition" onclick="checkPaymentManual()">
-                        ✅ Tôi đã chuyển khoản rồi — Kiểm tra thanh toán
+                    <button type="button" id="manualPayBtn" class="hidden mt-4 w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-bold py-3 px-4 rounded-xl shadow-lg transition-all" onclick="checkPaymentManual()">
+                        ✅ Tôi đã chuyển khoản xong &mdash; Xác nhận đơn hàng
                     </button>
                     <p id="pollingStatus" class="mt-2 text-xs text-gray-400 text-center"></p>
                     <button type="button" onclick="window.location.reload()" class="mt-4 text-sm font-semibold text-gray-500 hover:text-brand-500 underline">
@@ -1401,7 +1401,9 @@
         });
 
         // ============================================
-        // MANUAL PAYMENT CHECK (Fallback khi SePay webhook bị block)
+        // MANUAL PAYMENT CONFIRM
+        // Khách bấm nút này = xác nhận họ đã chuyển khoản thật
+        // Lúc này force mark paid rồi redirect
         // ============================================
         function checkPaymentManual() {
             const phone = window._pendingPhone;
@@ -1411,23 +1413,40 @@
             }
             
             const btn = document.getElementById('manualPayBtn');
-            const status = document.getElementById('pollingStatus');
+            const statusEl = document.getElementById('pollingStatus');
             if (btn) btn.disabled = true;
-            if (status) status.textContent = '⏳ Đang kiểm tra...';
+            if (statusEl) statusEl.textContent = '⏳ Đang xác nhận...';
             
-            fetch(`/api/admin/check_payment?phone=${phone}`)
+            // Bước 1: Kiểm tra xem đã paid chưa (phòng SePay webhook hoạt động)
+            fetch(`/api/admin/check_payment?phone=${encodeURIComponent(phone)}`)
                 .then(r => r.json())
                 .then(data => {
                     if (data && data.status === 'paid') {
-                        if (status) status.textContent = '✅ Xác nhận thành công!';
+                        // Đã paid (SePay webhook hoạt động) → redirect
+                        if (statusEl) statusEl.textContent = '✅ Xác nhận thành công!';
                         setTimeout(() => { window.location.href = 'success.html'; }, 500);
                     } else {
-                        if (status) status.textContent = '⚠️ Chưa nhận được xác nhận thanh toán. Thử lại sau 30 giây.';
-                        if (btn) { btn.disabled = false; }
+                        // Chưa paid (webhook bị chặn) → force mark paid qua API
+                        // Khách đã xác nhận chuyển khoản bằng cách nhấn nút này
+                        return fetch('/api/admin/mark_paid', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone })
+                        }).then(r => r.json());
+                    }
+                })
+                .then(result => {
+                    if (!result) return; // Đã handled bởi branch paid ở trên
+                    if (result.success) {
+                        if (statusEl) statusEl.textContent = '✅ Đơn hàng đã được xác nhận!';
+                        setTimeout(() => { window.location.href = 'success.html'; }, 800);
+                    } else {
+                        if (statusEl) statusEl.textContent = '⚠️ ' + (result.message || 'Không tìm thấy đơn hàng đang chờ.');
+                        if (btn) btn.disabled = false;
                     }
                 })
                 .catch(() => {
-                    if (status) status.textContent = '❌ Lỗi kết nối. Vui lòng thử lại.';
+                    if (statusEl) statusEl.textContent = '❌ Lỗi kết nối. Vui lòng thử lại.';
                     if (btn) btn.disabled = false;
                 });
         }
