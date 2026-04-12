@@ -10,7 +10,8 @@ const DB_FILE = path.join(__dirname, 'brain.db');
 // Hàm tạo local time VN chuẩn YYYY-MM-DD HH:MM:SS
 function getVNTime() {
     const d = new Date();
-    const vnTime = new Date(d.toLocaleString('en-US', {timeZone: 'Asia/Ho_Chi_Minh'}));
+    const utcTime = d.getTime() + (d.getTimezoneOffset() * 60000); // ms UTC
+    const vnTime = new Date(utcTime + (7 * 3600000)); // Cấp GMT+7
     const pad = n => n.toString().padStart(2, '0');
     return `${vnTime.getFullYear()}-${pad(vnTime.getMonth()+1)}-${pad(vnTime.getDate())} ${pad(vnTime.getHours())}:${pad(vnTime.getMinutes())}:${pad(vnTime.getSeconds())}`;
 }
@@ -77,7 +78,8 @@ app.get('/api/admin', (req, res) => {
                         r.registration_date, 
                         r.name, 
                         r.phone, 
-                        r.address || r.email || '', 
+                        r.email || '',
+                        r.address || '', 
                         r.size_preference || '', 
                         r.product_name || (r.pain_points ? 'Khảo Sát Đợi' : ''), 
                         r.amount || ''
@@ -87,7 +89,7 @@ app.get('/api/admin', (req, res) => {
             });
         } else if (sheet === 'orders') {
             db.all(`
-                SELECT o.*, c.name as cname, p.name as pname 
+                SELECT o.*, c.name as cname, c.email as cemail, c.phone as cphone, p.name as pname 
                 FROM orders o 
                 LEFT JOIN customers c ON o.customer_id = c.id 
                 LEFT JOIN products p ON o.product_id = p.id 
@@ -102,6 +104,8 @@ app.get('/api/admin', (req, res) => {
                     cols: [
                         r.purchase_date, 
                         r.cname, 
+                        r.cphone || '',
+                        r.cemail || '',
                         r.pname || 'LADY GRACE - Váy Thiết Kế', 
                         r.amount, 
                         r.status, 

@@ -68,7 +68,7 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="data-table min-w-full divide-y divide-gray-200 text-sm">
-                    <thead><tr><th class="px-4 py-3 text-left font-medium text-gray-500">STT</th><th class="px-4 py-3 text-left font-medium text-gray-500">Thời gian</th><th class="px-4 py-3 text-left font-medium text-gray-500">Họ Tên</th><th class="px-4 py-3 text-left font-medium text-gray-500">SĐT</th><th class="px-4 py-3 text-left font-medium text-gray-500">Địa chỉ</th><th class="px-4 py-3 text-left font-medium text-gray-500">Size / SP / Giá</th><th class="px-4 py-3 text-right font-medium text-gray-500">Thao tác</th></tr></thead>
+                    <thead><tr><th class="px-4 py-3 text-left font-medium text-gray-500">STT</th><th class="px-4 py-3 text-left font-medium text-gray-500">Thời gian</th><th class="px-4 py-3 text-left font-medium text-gray-500">Họ Tên</th><th class="px-4 py-3 text-left font-medium text-gray-500">Liên hệ</th><th class="px-4 py-3 text-left font-medium text-gray-500">Địa chỉ</th><th class="px-4 py-3 text-left font-medium text-gray-500">Size / SP / Giá</th><th class="px-4 py-3 text-right font-medium text-gray-500">Thao tác</th></tr></thead>
                     <tbody id="tbody-customers" class="divide-y divide-gray-200"></tbody>
                 </table>
             </div>
@@ -194,9 +194,12 @@
                     <td class="px-4 py-2 font-medium text-gray-500">${item.row}</td>
                     <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[0]}</td>
                     <td class="px-4 py-2 font-bold text-gray-800">${item.cols[1]}</td>
-                    <td class="px-4 py-2 text-gray-600">${item.cols[2]}</td>
-                    <td class="px-4 py-2 text-gray-500 truncate max-w-xs">${item.cols[3]}</td>
-                    <td class="px-4 py-2 text-gray-600 text-xs text-wrap">${item.cols[4] ? 'S:'+item.cols[4] : ''} | ${item.cols[5]||''} | ${formatMoney(item.cols[6]||'')}</td>
+                    <td class="px-4 py-2 text-gray-600">
+                        <div><i class="fas fa-phone text-xs mr-1 text-gray-400"></i>${item.cols[2]}</div>
+                        ${item.cols[3] ? `<div class="text-xs text-gray-400 mt-1"><i class="fas fa-envelope mr-1"></i>${item.cols[3]}</div>` : ''}
+                    </td>
+                    <td class="px-4 py-2 text-gray-500 truncate max-w-xs">${item.cols[4]}</td>
+                    <td class="px-4 py-2 text-gray-600 text-xs text-wrap">${item.cols[5] ? 'S:'+item.cols[5] : ''} | ${item.cols[6]||''} | ${formatMoney(item.cols[7]||'')}</td>
                     <td class="px-4 py-2 text-right">
                         <button onclick="editModal('customers', ${item.row})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteRow('customers', ${item.row})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
@@ -210,11 +213,17 @@
                 <tr class="hover:bg-blue-50">
                     <td class="px-4 py-2 font-medium text-gray-500">${item.row}</td>
                     <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[0]}</td>
-                    <td class="px-4 py-2 font-bold text-gray-800">${item.cols[1]}</td>
-                    <td class="px-4 py-2 text-purple-600 font-semibold">${item.cols[2]}</td>
-                    <td class="px-4 py-2 font-bold text-gray-900">${formatMoney(item.cols[3])}</td>
-                    <td class="px-4 py-2"><span class="px-2 py-1 rounded-md text-xs font-bold ${item.cols[4] === 'success' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.cols[4]}</span></td>
-                    <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[5]}</td>
+                    <td class="px-4 py-2">
+                        <div class="font-bold text-gray-800">${item.cols[1]}</div>
+                        <div class="text-xs text-gray-500 flex flex-col mt-1">
+                            ${item.cols[2] ? `<span><i class="fas fa-phone mr-1"></i>${item.cols[2]}</span>` : ''}
+                            ${item.cols[3] ? `<span><i class="fas fa-envelope mr-1"></i>${item.cols[3]}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="px-4 py-2 text-purple-600 font-semibold">${item.cols[4]}</td>
+                    <td class="px-4 py-2 font-bold text-gray-900">${formatMoney(item.cols[5])}</td>
+                    <td class="px-4 py-2"><span class="px-2 py-1 rounded-md text-xs font-bold ${item.cols[6] === 'success' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.cols[6]}</span></td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">${item.cols[7]}</td>
                     <td class="px-4 py-2 text-right">
                         <button onclick="editModal('orders', ${item.row})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteRow('orders', ${item.row})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
