@@ -196,6 +196,59 @@ async function scheduleEmailSequence(customerId, email, name, isTestMode = false
 }
 
 /**
+ * Gửi Email Xác Nhận Đơn Hàng (Transactional)
+ */
+async function sendOrderConfirmationEmail(data) {
+    const { name, email, product, amount, status, address } = data;
+    
+    const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    
+    const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 12px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #ea754d; margin: 0;">LAMAI</h2>
+                <p style="font-size: 12px; color: #999; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px;">Thư Xác Nhận Đơn Hàng</p>
+            </div>
+            <div style="font-size: 16px;">
+                <p>Chào Nàng <strong>${name}</strong>,</p>
+                <p>LAMAI xin gửi lời cảm ôm ấm áp vì Nàng đã tin tưởng lựa chọn thiết kế của chúng mình. Đơn hàng của Nàng đã được ghi nhận thành công trên hệ thống quản trị.</p>
+                
+                <div style="background-color: #fdf6f4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-weight: bold; color: #ea754d;">Thông tin chi tiết:</p>
+                    <ul style="list-style: none; padding: 0; margin: 10px 0 0 0;">
+                        <li>👗 Sản phẩm: <strong>${product}</strong></li>
+                        <li>💰 Tổng cộng: <strong>${formattedAmount}</strong></li>
+                        <li>📍 Địa chỉ: <strong>${address}</strong></li>
+                        <li>✨ Trạng thái: <strong>${status}</strong></li>
+                    </ul>
+                </div>
+                
+                <p><strong>Hướng dẫn nhận hàng:</strong></p>
+                <ul>
+                    <li>Đơn hàng sẽ được LAMAI chuẩn bị tỉ mỉ và gửi đến Nàng trong vòng 2-3 ngày tới.</li>
+                    <li>Nàng vui lòng kiểm tra sản phẩm trước khi thanh toán (nếu chọn COD).</li>
+                    <li>Chúng mình hỗ trợ đổi trả trong vòng 15 ngày nếu Nàng cảm thấy chưa thực sự ưng ý với phom dáng.</li>
+                </ul>
+                
+                <p>Nếu cần hỗ trợ gấp, Nàng đừng ngần ngại gọi cho chúng mình qua hotline: <b>0393096645</b> nhé.</p>
+                <p>Chúc Nàng luôn rạng rỡ và kiêu sa trong thiết kế của LAMAI!</p>
+            </div>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+            <div style="font-size: 12px; color: #777; text-align: center;">
+                © 2025 LAMAI - Thương hiệu thời trang thiết kế cao cấp.<br>
+                Website: www.lamai.vn | Hotline: 0393096645
+            </div>
+        </div>
+    `;
+
+    return await sendResendEmail({
+        to: email,
+        subject: `[LAMAI] Xác nhận đơn hàng thành công - ${product}`,
+        html
+    });
+}
+
+/**
  * Worker xử lý hàng đợi email.
  */
 async function processEmailQueue() {
@@ -333,11 +386,30 @@ app.post('/api/admin', (req, res) => {
                 res.json({ success: true, message: 'Thêm khách hàng thành công!' });
             });
         } else if (sheet === 'orders') {
-            db.run("INSERT INTO customers (registration_date, name, phone, email) VALUES (?, ?, ?, ?)", [data[0], data[1], data[2], data[3]], function(err) {
+            // data: [date, name, phone, email, address, product, total, status, code] (9 fields)
+            const [date, name, phone, email, address, product, total, status, code] = data;
+            
+            db.run("INSERT INTO customers (registration_date, name, phone, email, address) VALUES (?, ?, ?, ?, ?)", 
+                [date, name, phone, email, address], function(err) {
+                if (err) return res.json({ success: false, error: 'Lỗi tạo khách hàng: ' + err.message });
+                
                 const cid = this.lastID;
-                const amt = parseFloat((data[5]||'').replace(/[^\d]/g, '')) || 0;
-                db.run("INSERT INTO orders (customer_id, purchase_date, amount, status) VALUES (?, ?, ?, ?)", [cid, data[0], amt, data[6]], function(err) {
-                    res.json({ success: true, message: 'Tạo đơn hàng thành công!' });
+                const amt = parseFloat((String(total)||'').replace(/[^\d]/g, '')) || 0;
+                
+                db.run("INSERT INTO orders (customer_id, purchase_date, amount, status, address) VALUES (?, ?, ?, ?, ?)", 
+                    [cid, date, amt, status, address], function(err) {
+                    if (err) return res.json({ success: false, error: 'Lỗi tạo đơn hàng: ' + err.message });
+                    
+                    res.json({ success: true, message: 'Tạo đơn hàng thành công và đang gửi email xác nhận!' });
+
+                    // Gửi email xác nhận ngay lập tức
+                    if (email) {
+                        sendOrderConfirmationEmail({ name, email, product, amount: amt, status, address }).then(res => {
+                            console.log(`[Admin] Email xác nhận đơn hàng đã được gửi tới ${email}`);
+                        }).catch(e => {
+                            console.error(`[Admin Error] Không thể gửi email xác nhận cho ${email}:`, e);
+                        });
+                    }
                 });
             });
         }
