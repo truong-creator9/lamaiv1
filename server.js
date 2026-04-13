@@ -6,24 +6,21 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const { Resend } = require('resend');
+require('dotenv').config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'brain.db');
 
 // --- Cấu hình Resend Email ---
 let resend;
-const RESEND_CONFIG_PATH = path.join(__dirname, 'resend_config.txt');
-try {
-    if (fs.existsSync(RESEND_CONFIG_PATH)) {
-        const apiKey = fs.readFileSync(RESEND_CONFIG_PATH, 'utf8').trim();
-        resend = new Resend(apiKey);
-        console.log('✅ Resend đã được khởi tạo thành công.');
-    } else {
-        console.warn('⚠️ Không tìm thấy file resend_config.txt. Email sẽ không được gửi.');
-    }
-} catch (err) {
-    console.error('❌ Lỗi khi đọc file cấu hình Resend:', err.message);
+const apiKey = process.env.RESEND_API_KEY;
+
+if (apiKey) {
+    resend = new Resend(apiKey);
+    console.log('✅ Resend đã được khởi tạo thành công từ biến môi trường.');
+} else {
+    console.warn('⚠️ Không tìm thấy biến môi trường RESEND_API_KEY. Email sẽ không được gửi.');
 }
 
 // Hàm gửi email chung qua Resend
@@ -45,7 +42,7 @@ async function sendResendEmail({ to, subject, html }) {
         }
 
         const { data, error } = await resend.emails.send({
-            from: 'LAMAI <onboarding@resend.dev>', // Email mặc định của Resend để test
+            from: process.env.RESEND_SENDER || 'LAMAI <onboarding@resend.dev>', 
             to: targetEmail,
             subject,
             html,
