@@ -4,3 +4,6 @@ node_modules/
 .env
 resend_config.txt
 .DS_Store
+brain.db
+*.db
+*.db-journal
