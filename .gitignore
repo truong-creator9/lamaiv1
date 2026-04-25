@@ -7,3 +7,6 @@ resend_config.txt
 brain.db
 *.db
 *.db-journal
+.venv/
+dist/
+mcp-server/dist/
