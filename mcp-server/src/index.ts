@@ -118,6 +118,11 @@ function createServer(): Server {
           name: "biz__check_new_leads",
           description: "Kiểm tra khách hàng mới điền form trong 15 phút gần đây. Trả về định dạng ngắn gọn cho Telegram.",
           inputSchema: { type: "object", properties: {} }
+        },
+        {
+          name: "biz__daily_summary",
+          description: "Tổng hợp báo cáo kinh doanh trong 24 giờ qua (Đơn hàng, doanh thu, khách mới).",
+          inputSchema: { type: "object", properties: {} }
         }
       ]
     };
@@ -326,6 +331,41 @@ function createServer(): Server {
         const seqNum = totalToday - index;
         msg += `${lead.name} vừa điền form, SĐT ${lead.phone || 'N/A'}. Khách thứ ${seqNum} hôm nay. `;
       });
+
+      return { content: [{ type: "text", text: msg }] };
+    }
+
+    if (toolName === "biz__daily_summary") {
+      const db = await open({ filename: DB_PATH, driver: Database });
+      
+      // Query orders and revenue in the last 24 hours
+      const ordersInfo = await db.get(`
+        SELECT COUNT(*) as total_orders, 
+               SUM(amount) as total_revenue
+        FROM orders 
+        WHERE purchase_date >= datetime('now', '+7 hours', '-24 hours')
+      `);
+
+      // Query new leads in the last 24 hours
+      const customerInfo = await db.get(`
+        SELECT COUNT(*) as new_customers 
+        FROM customers 
+        WHERE registration_date >= datetime('now', '+7 hours', '-24 hours')
+      `);
+
+      await db.close();
+
+      const totalOrders = ordersInfo?.total_orders ?? 0;
+      const totalRevenue = ordersInfo?.total_revenue ?? 0;
+      const newCustomers = customerInfo?.new_customers ?? 0;
+
+      if (totalOrders === 0 && newCustomers === 0) {
+        return { content: [{ type: "text", text: "24h qua không có đơn hàng hay khách hàng mới nào." }] };
+      }
+
+      const formattedRevenue = new Intl.NumberFormat('vi-VN').format(totalRevenue);
+
+      let msg = `Báo cáo 24h qua: Chốt ${totalOrders} đơn, doanh thu ${formattedRevenue}đ. Có ${newCustomers} khách mới điền form.`;
 
       return { content: [{ type: "text", text: msg }] };
     }
