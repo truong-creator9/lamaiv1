@@ -113,6 +113,11 @@ function createServer(): Server {
           name: "biz__check_new_orders",
           description: "Kiểm tra đơn hàng mới trong 15 phút gần đây. Trả về định dạng ngắn gọn cho Telegram.",
           inputSchema: { type: "object", properties: {} }
+        },
+        {
+          name: "biz__check_new_leads",
+          description: "Kiểm tra khách hàng mới điền form trong 15 phút gần đây. Trả về định dạng ngắn gọn cho Telegram.",
+          inputSchema: { type: "object", properties: {} }
         }
       ]
     };
@@ -286,6 +291,41 @@ function createServer(): Server {
       });
 
       msg += `Tổng hôm nay: ${totalToday} đơn.`;
+
+      return { content: [{ type: "text", text: msg }] };
+    }
+
+    if (toolName === "biz__check_new_leads") {
+      const db = await open({ filename: DB_PATH, driver: Database });
+      
+      // Query new leads in the last 15 minutes
+      const newLeads = await db.all(`
+        SELECT name, phone FROM customers
+        WHERE registration_date >= datetime('now', '+7 hours', '-15 minutes')
+        ORDER BY registration_date DESC
+      `);
+
+      // Query total leads for today to get sequence number
+      const todayStats = await db.get(`
+        SELECT COUNT(*) as count FROM customers 
+        WHERE strftime('%Y-%m-%d', registration_date) = strftime('%Y-%m-%d', 'now', '+7 hours')
+      `);
+
+      await db.close();
+
+      if (!newLeads || newLeads.length === 0) {
+        return { content: [{ type: "text", text: "Không có khách hàng mới trong 15 phút qua." }] };
+      }
+
+      const totalToday = todayStats?.count ?? 0;
+      let msg = "";
+      
+      // We calculate the sequence number for each lead
+      // If there are multiple new leads, we show them all
+      newLeads.forEach((lead, index) => {
+        const seqNum = totalToday - index;
+        msg += `${lead.name} vừa điền form, SĐT ${lead.phone || 'N/A'}. Khách thứ ${seqNum} hôm nay. `;
+      });
 
       return { content: [{ type: "text", text: msg }] };
     }
