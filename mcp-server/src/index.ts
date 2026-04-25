@@ -110,18 +110,18 @@ function createServer(): Server {
           }
         },
         {
-          name: "biz__check_new_orders",
-          description: "Kiểm tra đơn hàng mới trong 15 phút gần đây. Trả về định dạng ngắn gọn cho Telegram.",
+          name: "biz_check_new_orders",
+          description: "Kiểm tra đơn hàng mới trong 15 phút gần đây.",
           inputSchema: { type: "object", properties: {} }
         },
         {
-          name: "biz__check_new_leads",
-          description: "Kiểm tra khách hàng mới điền form trong 15 phút gần đây. Trả về định dạng ngắn gọn cho Telegram.",
+          name: "biz_check_new_leads",
+          description: "Kiểm tra khách hàng mới điền form trong 15 phút gần đây.",
           inputSchema: { type: "object", properties: {} }
         },
         {
-          name: "biz__daily_summary",
-          description: "Tổng hợp báo cáo kinh doanh trong 24 giờ qua (Đơn hàng, doanh thu, khách mới).",
+          name: "biz_daily_summary",
+          description: "Báo cáo kinh doanh 24h qua (Đơn, doanh thu, khách mới).",
           inputSchema: { type: "object", properties: {} }
         }
       ]
@@ -263,10 +263,9 @@ function createServer(): Server {
       return { content: [{ type: "text", text: msg }] };
     }
 
-    if (toolName === "biz__check_new_orders") {
+    if (toolName === "biz_check_new_orders") {
       const db = await open({ filename: DB_PATH, driver: Database });
       
-      // Query new orders in the last 15 minutes
       const newOrders = await db.all(`
         SELECT o.amount, c.name as customer_name
         FROM orders o
@@ -275,7 +274,6 @@ function createServer(): Server {
         ORDER BY o.purchase_date DESC
       `);
 
-      // Query total orders for today
       const todayStats = await db.get(`
         SELECT COUNT(*) as count FROM orders 
         WHERE strftime('%Y-%m-%d', purchase_date) = strftime('%Y-%m-%d', 'now', '+7 hours')
@@ -284,33 +282,29 @@ function createServer(): Server {
       await db.close();
 
       if (!newOrders || newOrders.length === 0) {
-        return { content: [{ type: "text", text: "Không có đơn hàng mới nào trong 15 phút qua." }] };
+        return { content: [{ type: "text", text: "Không có đơn mới trong 15 phút qua." }] };
       }
 
       const totalToday = todayStats?.count ?? 0;
       let msg = "";
-      
       newOrders.forEach(order => {
         const amountFormatted = new Intl.NumberFormat('vi-VN').format(order.amount);
-        msg += `Đơn mới: ${order.customer_name}, ${amountFormatted}đ, 1 sp. `;
+        msg += `Đơn mới: ${order.customer_name}, ${amountFormatted}đ. `;
       });
-
       msg += `Tổng hôm nay: ${totalToday} đơn.`;
 
       return { content: [{ type: "text", text: msg }] };
     }
 
-    if (toolName === "biz__check_new_leads") {
+    if (toolName === "biz_check_new_leads") {
       const db = await open({ filename: DB_PATH, driver: Database });
       
-      // Query new leads in the last 15 minutes
       const newLeads = await db.all(`
         SELECT name, phone FROM customers
         WHERE registration_date >= datetime('now', '+7 hours', '-15 minutes')
         ORDER BY registration_date DESC
       `);
 
-      // Query total leads for today to get sequence number
       const todayStats = await db.get(`
         SELECT COUNT(*) as count FROM customers 
         WHERE strftime('%Y-%m-%d', registration_date) = strftime('%Y-%m-%d', 'now', '+7 hours')
@@ -319,34 +313,28 @@ function createServer(): Server {
       await db.close();
 
       if (!newLeads || newLeads.length === 0) {
-        return { content: [{ type: "text", text: "Không có khách hàng mới trong 15 phút qua." }] };
+        return { content: [{ type: "text", text: "Không có khách mới trong 15 phút qua." }] };
       }
 
       const totalToday = todayStats?.count ?? 0;
       let msg = "";
-      
-      // We calculate the sequence number for each lead
-      // If there are multiple new leads, we show them all
       newLeads.forEach((lead, index) => {
         const seqNum = totalToday - index;
-        msg += `${lead.name} vừa điền form, SĐT ${lead.phone || 'N/A'}. Khách thứ ${seqNum} hôm nay. `;
+        msg += `${lead.name}, SĐT ${lead.phone || 'N/A'}. Khách thứ ${seqNum} hôm nay. `;
       });
 
       return { content: [{ type: "text", text: msg }] };
     }
 
-    if (toolName === "biz__daily_summary") {
+    if (toolName === "biz_daily_summary" || toolName === "biz_dailysummary") {
       const db = await open({ filename: DB_PATH, driver: Database });
       
-      // Query orders and revenue in the last 24 hours
       const ordersInfo = await db.get(`
-        SELECT COUNT(*) as total_orders, 
-               SUM(amount) as total_revenue
+        SELECT COUNT(*) as total_orders, SUM(amount) as total_revenue
         FROM orders 
         WHERE purchase_date >= datetime('now', '+7 hours', '-24 hours')
       `);
 
-      // Query new leads in the last 24 hours
       const customerInfo = await db.get(`
         SELECT COUNT(*) as new_customers 
         FROM customers 
@@ -360,14 +348,11 @@ function createServer(): Server {
       const newCustomers = customerInfo?.new_customers ?? 0;
 
       if (totalOrders === 0 && newCustomers === 0) {
-        return { content: [{ type: "text", text: "24h qua không có đơn hàng hay khách hàng mới nào." }] };
+        return { content: [{ type: "text", text: "24h qua chưa có đơn hay khách mới." }] };
       }
 
       const formattedRevenue = new Intl.NumberFormat('vi-VN').format(totalRevenue);
-
-      let msg = `Báo cáo 24h qua: Chốt ${totalOrders} đơn, doanh thu ${formattedRevenue}đ. Có ${newCustomers} khách mới điền form.`;
-
-      return { content: [{ type: "text", text: msg }] };
+      return { content: [{ type: "text", text: `Báo cáo 24h: ${totalOrders} đơn, doanh thu ${formattedRevenue}đ. Có ${newCustomers} khách mới điền form.` }] };
     }
 
     return { content: [{ type: "text", text: "Tool not found" }], isError: true };
