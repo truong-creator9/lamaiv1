@@ -88,7 +88,9 @@ app.use((req, res, next) => {
 });
 
 // Serve static files from the current directory (for index.html, etc.)
-app.use(express.static(__dirname));\n// Route cho Kế hoạch kinh doanh (Demo Day)\napp.use('/ke-hoach', express.static(path.join(__dirname, 'ke-hoach-kinh-doanh')));
+app.use(express.static(__dirname));
+// Route cho Kế hoạch kinh doanh (Demo Day)
+app.use('/ke-hoach', express.static(path.join(__dirname, 'ke-hoach-kinh-doanh')));
 
 // --- Sales Funnel Routes (Media Automation Pack) ---
 app.get('/san-pham/media-automation-pack', (req, res) => {
