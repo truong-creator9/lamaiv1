@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMAI | Xưởng Phim AI Kiêu Kỳ - Giải Pháp Thảnh Thơi Cho Chủ Shop</title>
+    <meta name="description" content="Biến ảnh mẫu thành video Cinematic triệu view. Giải pháp AI Automation thực chiến dành riêng cho các nàng chủ shop Local Brand thời trang.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Exact Color Palette from lamai.vn */
+            --bg-cream: #fdf8f5;
+            --bg-white: #ffffff;
+            --primary-coral: #e94e77;
+            --text-heading: #1a1a1a;
+            --text-body: #4a4a4a;
+            --text-muted: #6b7280;
+            --btn-start: #f06a4e;
+            --btn-end: #e91e63;
+            --border: rgba(233, 78, 119, 0.1);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-white); 
+            color: var(--text-body); 
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--text-heading); }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header / Logo Area */
+        nav {
+            padding: 40px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--primary-coral);
+            font-weight: 700;
+        }
+
+        /* Hero Section */
+        header {
+            padding: 60px 0 100px;
+            text-align: center;
+            background-color: var(--bg-cream);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 25px; }
+        h1 span { font-style: italic; font-weight: 400; color: var(--primary-coral); }
+
+        .hero-desc { font-size: 1.2rem; color: var(--text-body); max-width: 700px; margin: 0 auto 40px; font-weight: 400; }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 20px 45px;
+            background: linear-gradient(135deg, var(--btn-start) 0%, var(--btn-end) 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(233, 30, 99, 0.2);
+            border: none;
+            cursor: pointer;
+        }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(233, 30, 99, 0.3); }
+
+        /* Feature Image instead of Video */
+        .hero-image {
+            margin-top: 60px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 8px solid #fff;
+            background: #eee;
+        }
+        .hero-image img { width: 100%; display: block; }
+
+        /* Pain Section */
+        .pain-section { padding: 100px 0; }
+        .section-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--primary-coral);
+            margin-bottom: 20px;
+            display: block;
+            text-align: center;
+        }
+        .pain-section h2 { text-align: center; font-size: 2.8rem; margin-bottom: 50px; }
+        
+        .pain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .pain-content p { font-size: 1.1rem; margin-bottom: 20px; color: var(--text-body); }
+
+        /* Mechanism Section */
+        .mechanism-section { padding: 100px 0; background-color: var(--bg-cream); }
+        .mech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 50px; }
+        .mech-card {
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+        .mech-card:hover { transform: translateY(-5px); }
+        .mech-card .icon { 
+            width: 50px; height: 50px; background: var(--bg-cream); 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 25px; color: var(--primary-coral); font-size: 20px;
+        }
+        .mech-card h3 { font-size: 1.4rem; margin-bottom: 15px; }
+        .mech-card p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* Value Stack */
+        .value-stack { padding: 100px 0; }
+        .stack-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: var(--shadow);
+        }
+        .stack-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 0; border-bottom: 1px solid #f3f4f6;
+        }
+        .stack-item:last-child { border-bottom: none; }
+        .stack-item span:first-child { font-weight: 500; }
+        .stack-item .price { color: var(--text-muted); text-decoration: line-through; font-size: 14px; }
+
+        /* Final Offer */
+        .offer-section { padding: 100px 0 150px; text-align: center; }
+        .offer-card {
+            max-width: 600px; margin: 0 auto;
+            background: var(--bg-cream);
+            padding: 60px 40px;
+            border-radius: 30px;
+            border: 2px dashed var(--primary-coral);
+        }
+        .price-tag { font-size: 4.5rem; font-weight: 700; color: var(--text-heading); margin: 20px 0; }
+        .price-tag small { font-size: 1.5rem; font-weight: 400; color: var(--text-muted); }
+
+        /* Footer */
+        footer { padding: 60px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .pain-grid, .mech-grid { grid-template-columns: 1fr; }
+            .mech-card { padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo-text">Media LAMAI</div>
+    </nav>
+
+    <header>
+        <div class="container">
+            <span class="hero-badge">Luxury AI Automation</span>
+            <h1>Biến ảnh mẫu thành<br><span>Video Cinematic</span> triệu view</h1>
+            <p class="hero-desc">Sở hữu "Xưởng Phim AI LAMAI" vận hành thảnh thơi 24/7 trên Telegram. Giải phóng sức lao động để nàng thực sự tận hưởng cuộc sống của một Quý cô điều hành.</p>
+            <a href="#offer" class="cta-btn">Sở hữu ngay với 10.000đ</a>
+            
+            <div class="hero-image">
+                <!-- Replace with a high-quality fashion image -->
+                <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2070" alt="Cinematic Fashion Preview">
+            </div>
+        </div>
+    </header>
+
+    <section class="pain-section">
+        <div class="container">
+            <span class="section-label">Câu chuyện của chúng mình</span>
+            <h2>Nàng có đang "oải" vì vòng xoáy media?</h2>
+            <div class="pain-grid">
+                <div class="pain-content">
+                    <p>Nàng dành cả tuần tâm huyết thiết kế bộ váy, nhưng lại kiệt sức vì thức đến 2h sáng chỉ để cắt ghép 15 giây video cho bớt "phèn"?</p>
+                    <p>Nàng sợ AI vì nó "khó dùng", vì video nhìn "giả trân", hay vì Agent cứ hay bị treo máy giữa chừng?</p>
+                    <p>Mình hiểu. Sự thong dong mới là món trang sức lộng lẫy nhất của nàng. Đừng để khâu quay dựng lỉnh kỉnh kìm hãm sự kiêu hãnh của thương hiệu nàng thêm một giây nào nữa.</p>
+                </div>
+                <div style="border-radius: 20px; overflow: hidden;">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1000" alt="Fashion Brand Owner" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mechanism-section">
+        <div class="container">
+            <span class="section-label">Tại sao chúng mình khác biệt?</span>
+            <h2 style="text-align: center; margin-bottom: 20px;">Bí mật "Thiết Quân Luật"</h2>
+            <div class="mech-grid">
+                <div class="mech-card">
+                    <div class="icon">⚡</div>
+                    <h3>Trigger Tuyệt Đối</h3>
+                    <p>Bộ Script Master ép Agent thực thi nhiệm vụ dứt điểm, không lười biếng, không treo máy giữa chừng.</p>
+                </div>
+                <div class="mech-card">
+                    <div class="icon">🛡️</div>
+                    <h3>Cấu Hình Dứt Điểm</h3>
+                    <p>Loại bỏ 100% xung đột chỉ dẫn, giúp Agent vận hành mượt mà trên VPS riêng của nàng 24/7.</p>
+                </div>
+                <div class="mech-card">
+                    <div class="icon">✨</div>
+                    <h3>Thẩm Mỹ Kiêu Kỳ</h3>
+                    <p>Thuật toán Prompt chuyên biệt cho ngành thời trang, chuyển hóa ảnh tĩnh thành thước phim Cinematic sang chảnh.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="value-stack">
+        <div class="container">
+            <div class="stack-box">
+                <span class="section-label">Bộ Khởi Đầu Thảnh Thơi</span>
+                <h2 style="margin-bottom: 40px;">Nàng sẽ nhận được:</h2>
+                <div class="stack-item">
+                    <span>Source Code 02 Skill v7 Tối Ưu</span>
+                    <span class="price">2.000.000đ</span>
+                </div>
+                <div class="stack-item">
+                    <span>Script Master Trigger Độc Quyền</span>
+                    <span class="price">1.500.000đ</span>
+                </div>
+                <div class="stack-item">
+                    <span>Cấu Hình "Thiết Quân Luật" Toàn Diện</span>
+                    <span class="price">1.000.000đ</span>
+                </div>
+                <div class="stack-item">
+                    <span>Cẩm Nang PDF "Cầm Tay Chỉ Việc"</span>
+                    <span class="price">500.000đ</span>
+                </div>
+                <div style="text-align: right; margin-top: 30px; font-weight: 700; color: var(--primary-coral); font-size: 1.2rem;">
+                    TỔNG GIÁ TRỊ: 5.000.000đ
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="offer-section" id="offer">
+        <div class="container">
+            <div class="offer-card">
+                <span class="section-label" style="color: var(--text-muted);">Godfather Offer</span>
+                <h2>Sở hữu Xưởng Phim AI</h2>
+                <p style="margin-top: 15px; color: var(--text-body);">Hôm nay, không phải 5.000.000đ. Cũng không phải 500.000đ.</p>
+                <div class="price-tag">10.000<small>VNĐ</small></div>
+                <p style="margin-bottom: 40px; color: var(--text-muted);">Giá trải nghiệm dành cho các nàng dẫn đầu xu hướng.</p>
+                <a href="https://lamai.vn/san-pham/media-automation-pack/checkout" class="cta-btn">Nhận file tự động ngay</a>
+                <p style="margin-top: 40px; font-size: 14px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 20px;">
+                    🔒 Thanh toán qua Sepay · File giao tự động sau 1 nốt nhạc
+                </p>
+            </div>
+            
+            <div style="margin-top: 60px; font-style: italic; color: var(--text-muted);">
+                "Cam kết sự trơn tru cho đến khi nàng sở hữu video đầu tiên."
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 LAMAI AUTOMATION LAB. Designed by Antigravity.<br>Dành cho những quý cô yêu cái đẹp và sự tự do.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

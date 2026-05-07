@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Funnel — Xưởng Phim AI LAMAI</title>
+    <style>
+        :root {
+            --ads: #fbbf24;
+            --capture: #3b82f6;
+            --nurture: #10b981;
+            --sales: #8b5cf6;
+            --deliver: #14b8a6;
+            --upsell: #f59e0b;
+            --text: #1e1b4b;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { margin-bottom: 40px; font-weight: 800; color: #1e1b4b; }
+        .funnel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+        .step {
+            width: 320px;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .step:hover { transform: translateY(-5px); }
+        .arrow {
+            font-size: 24px;
+            color: #94a3b8;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .rate {
+            font-size: 14px;
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-top: 5px;
+            color: #64748b;
+        }
+        
+        .type-ads { background-color: var(--ads); color: #78350f; }
+        .type-capture { background-color: var(--capture); color: #eff6ff; }
+        .type-nurture { background-color: var(--nurture); color: #ecfdf5; }
+        .type-sales { background-color: var(--sales); color: #f5f3ff; }
+        .type-deliver { background-color: var(--deliver); color: #f0fdfa; }
+        .type-upsell { background-color: var(--upsell); color: #fffbeb; border: 2px dashed #b45309; }
+
+        .sub-steps {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+        .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ef4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Sơ đồ Phễu "Quý Cô Thảnh Thơi" — LAMAI</h1>
+    
+    <div class="funnel-container">
+        <!-- ADS -->
+        <div class="step type-ads">
+            Facebook / Reels / TikTok Ads
+            <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Video AI Cinematic sang chảnh</div>
+        </div>
+
+        <div class="arrow">
+            ↓ <span class="rate">CTR: 2-5%</span>
+        </div>
+
+        <!-- OPT-IN -->
+        <div class="step type-capture">
+            Opt-in Page (Quà tặng)
+            <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Bộ Starter Kit: 5 Prompt Kiêu Kỳ</div>
+        </div>
+
+        <div class="arrow">
+            ↓ <span class="rate">Opt-in Rate: 25%</span>
+        </div>
+
+        <!-- TRIPWIRE -->
+        <div class="step type-capture" style="border: 3px solid #1d4ed8;">
+            Tripwire Page (Lọc Buyer)
+            <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Gói v7 Trải Nghiệm 10k</div>
+            <div class="badge">Order Bump 199k</div>
+        </div>
+
+        <div class="arrow">
+            ↓ <span class="rate">Conversion: 10%</span>
+        </div>
+
+        <!-- NURTURE -->
+        <div class="sub-steps">
+            <div class="step type-nurture">
+                Email / Telegram Series
+                <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">7 ngày "Tâm tình tỷ muội"</div>
+            </div>
+            <div class="step type-nurture">
+                Retargeting Ads
+                <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Nhắc nhở nàng thảnh thơi</div>
+            </div>
+        </div>
+
+        <div class="arrow">
+            ↓ <span class="rate">Warm-up</span>
+        </div>
+
+        <!-- SALES -->
+        <div class="step type-sales">
+            Sales Page (Core Offer)
+            <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Lộ trình 21 Ngày Tự Động Hóa</div>
+        </div>
+
+        <div class="arrow">
+            ↓ <span class="rate">Buy Rate: 5% (từ Tripwire)</span>
+        </div>
+
+        <!-- UPSELL -->
+        <div class="step type-upsell">
+            Upsell: Cài đặt hộ (990k)
+            <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Dịch vụ Speed & Ease</div>
+        </div>
+
+        <div class="arrow">
+            ↓
+        </div>
+
+        <!-- DELIVER -->
+        <div class="step type-deliver">
+            Thank You & Onboarding
+            <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Group Tỷ Muội Tinh Hoa</div>
+        </div>
+    </div>
+</body>
+</html>

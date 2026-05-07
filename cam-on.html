@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cảm ơn bạn! - LAMAI Media</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdf8f6',
+                            100: '#fbece6',
+                            500: '#ea754d',
+                            600: '#d95d39',
+                            900: '#7a2d1a',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .btn-gradient {
+            background: linear-gradient(135deg, #ea754d 0%, #ee0979 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-gradient:hover {
+            box-shadow: 0 10px 25px -5px rgba(234, 117, 77, 0.5);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-900 leading-relaxed overflow-x-hidden">
+
+    <main class="max-w-[480px] mx-auto bg-white min-h-screen relative shadow-2xl flex flex-col items-center justify-center p-8 text-center">
+        
+        <div id="loading" class="animate-pulse">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-brand-500 mb-4"></i>
+            <p class="text-slate-400 text-sm uppercase tracking-widest">Đang xác nhận đơn hàng...</p>
+        </div>
+
+        <div id="content" class="hidden">
+            <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <i class="fas fa-gift text-4xl"></i>
+            </div>
+
+            <h1 class="font-serif text-3xl font-bold mb-4">🎉 Cảm ơn <span id="customerName" class="text-brand-600">bạn</span>!</h1>
+            <p class="text-slate-600 font-medium mb-12">File của bạn đã sẵn sàng để tải xuống.</p>
+
+            <a id="downloadBtn" href="#" class="w-full inline-flex btn-gradient text-white font-bold py-6 rounded-2xl shadow-2xl justify-center items-center gap-4 uppercase tracking-[0.2em] text-sm transition-transform active:scale-95 mb-12">
+                <i class="fas fa-download text-lg"></i> TẢI XUỐNG BỘ SKILL (.ZIP)
+            </a>
+
+            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-left">
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    <i class="fas fa-info-circle text-brand-500 mr-2"></i>
+                    Chúng tôi đã gửi link vào email <strong id="customerEmail" class="text-slate-900"></strong> — bạn có thể dùng link này để tải lại bất cứ lúc nào.
+                </p>
+            </div>
+        </div>
+
+        <div id="error" class="hidden">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+            <h2 class="font-bold text-lg mb-2">Không tìm thấy đơn hàng</h2>
+            <p class="text-slate-400 text-sm mb-8">Vui lòng liên hệ hỗ trợ nếu bạn đã thanh toán.</p>
+            <a href="/san-pham/media-automation-pack" class="text-brand-600 font-bold underline">Quay lại trang chủ</a>
+        </div>
+
+        <!-- Footer -->
+        <footer class="absolute bottom-8 w-full text-center text-[9px] text-slate-300 uppercase tracking-widest">
+            LAMAI AUTOMATION LAB © 2026
+        </footer>
+    </main>
+
+    <script>
+        async function loadOrderDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const orderId = params.get('order_id');
+
+            if (!orderId) {
+                showError();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/media-pack/order-details?order_id=${orderId}`);
+                const data = await res.json();
+
+                if (data.success && (data.status === 'paid' || data.status === 'success')) {
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('content').classList.remove('hidden');
+                    document.getElementById('customerName').innerText = data.name;
+                    document.getElementById('customerEmail').innerText = data.email;
+                    document.getElementById('downloadBtn').href = data.download_url;
+                } else {
+                    showError();
+                }
+            } catch (err) {
+                console.error(err);
+                showError();
+            }
+        }
+
+        function showError() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        window.onload = loadOrderDetails;
+    </script>
+</body>
+
+</html>

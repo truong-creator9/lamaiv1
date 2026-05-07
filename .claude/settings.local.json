@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py -3 -)",
+      "Read(//c/tmp/**)",
+      "Bash(ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=yes -p 2018 root@103.97.127.35)",
+      "Bash(apt-get install *)",
+      "PowerShell(python -c \"import paramiko; print\\('paramiko ok'\\)\" 2>&1)",
+      "PowerShell(python C:/tmp/update_cron.py)",
+      "PowerShell(python C:/tmp/update_cron2.py)",
+      "PowerShell(python C:/tmp/find_db.py)",
+      "PowerShell(python C:/tmp/update_cron3.py)",
+      "PowerShell(python C:/tmp/update_skill_md.py)",
+      "PowerShell(python C:/tmp/update_skill_md2.py)"
+    ],
+    "additionalDirectories": [
+      "C:\\tmp"
+    ]
+  }
+}

@@ -9,6 +9,7 @@ const { Resend } = require('resend');
 require('dotenv').config();
 
 const app = express();
+const rateLimit = require('express-rate-limit');
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'brain.db');
 
@@ -87,7 +88,142 @@ app.use((req, res, next) => {
 });
 
 // Serve static files from the current directory (for index.html, etc.)
-app.use(express.static(__dirname));
+app.use(express.static(__dirname));\n// Route cho Kế hoạch kinh doanh (Demo Day)\napp.use('/ke-hoach', express.static(path.join(__dirname, 'ke-hoach-kinh-doanh')));
+
+// --- Sales Funnel Routes (Media Automation Pack) ---
+app.get('/san-pham/media-automation-pack', (req, res) => {
+    res.sendFile(path.join(__dirname, 'media-automation-pack.html'));
+});
+
+app.get('/san-pham/media-automation-pack/checkout', (req, res) => {
+    res.sendFile(path.join(__dirname, 'checkout.html'));
+});
+
+app.get('/san-pham/media-automation-pack/cam-on', (req, res) => {
+    res.sendFile(path.join(__dirname, 'cam-on.html'));
+});
+
+// --- Security: Rate Limiting ---
+const createOrderLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 3, // Limit each IP to 3 requests per `window` (here, per 10 minutes)
+    message: { success: false, message: 'Bạn đã thao tác quá nhanh. Vui lòng đợi 10 phút sau để thử lại.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// API: Create Order for Media Pack
+app.post('/api/media-pack/create-order', createOrderLimiter, (req, res) => {
+    const { phone, email, name } = req.body;
+    
+    // 1. Validate Email (Server-side Regex)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+        return res.status(400).json({ success: false, message: 'Email không đúng định dạng. Vui lòng kiểm tra lại.' });
+    }
+
+    if (!phone) return res.status(400).json({ success: false, message: 'Thiếu số điện thoại' });
+
+    const productId = 777; // ID cho Media Automation Pack
+    const amount = 10000;
+    const purchaseDate = getVNTime();
+    
+    // 1. Find or Create/Update Customer
+    db.get(`SELECT id FROM customers WHERE phone = ?`, [phone], (err, row) => {
+        if (row) {
+            // Update existing customer
+            db.run(`UPDATE customers SET email = ?, name = ? WHERE id = ?`, [email || '', name || 'Khách hàng', row.id], (err) => {
+                if (err) return res.status(500).json({ success: false, message: 'Lỗi cập nhật khách hàng' });
+                createOrder(row.id);
+            });
+        } else {
+            // Create new customer
+            db.run(`INSERT INTO customers (phone, email, name, registration_date) VALUES (?, ?, ?, ?)`,
+                [phone, email || '', name || 'Khách hàng', purchaseDate], function(err) {
+                if (err) return res.status(500).json({ success: false, message: 'Lỗi tạo khách hàng mới' });
+                createOrder(this.lastID);
+            });
+        }
+    });
+
+    function createOrder(customerId) {
+        // 2. Create Order
+        db.run(`INSERT INTO orders (customer_id, product_id, amount, status, purchase_date) VALUES (?, ?, ?, ?, ?)`,
+            [customerId, productId, amount, 'pending', purchaseDate], function(err) {
+            if (err) return res.status(500).json({ success: false, message: 'Lỗi tạo đơn hàng' });
+            
+            const orderId = this.lastID;
+            const description = `THANH TOAN DON HANG ${phone}`; // Standard SePay content
+            const qrUrl = `https://qr.sepay.vn/img?acc=19907647&bank=ACB&amount=${amount}&des=${encodeURIComponent(description)}&template=compact`;
+            
+            res.json({
+                success: true,
+                order_id: orderId,
+                qr_url: qrUrl,
+                description: description
+            });
+        });
+    }
+});
+
+// API: Check Payment Status
+app.get('/api/media-pack/check-payment', (req, res) => {
+    const { order_id } = req.query;
+    if (!order_id) return res.status(400).json({ status: 'error', message: 'Missing order_id' });
+
+    db.get(`SELECT status FROM orders WHERE id = ?`, [order_id], (err, row) => {
+        if (err) return res.status(500).json({ status: 'error', message: err.message });
+        if (row && (row.status === 'success' || row.status === 'paid')) {
+            return res.json({ 
+                status: 'paid', 
+                download_url: `/api/media-pack/download?order_id=${order_id}` 
+            });
+        }
+        res.json({ status: 'pending' });
+    });
+});
+
+// API: Get Order Details (for Thank You page)
+app.get('/api/media-pack/order-details', (req, res) => {
+    const { order_id } = req.query;
+    if (!order_id) return res.status(400).json({ success: false });
+
+    db.get(`
+        SELECT orders.status, customers.name, customers.email 
+        FROM orders 
+        JOIN customers ON orders.customer_id = customers.id 
+        WHERE orders.id = ?
+    `, [order_id], (err, row) => {
+        if (err || !row) return res.status(404).json({ success: false });
+        res.json({ 
+            success: true, 
+            name: row.name, 
+            email: row.email, 
+            status: row.status,
+            download_url: `/api/media-pack/download?order_id=${order_id}`
+        });
+    });
+});
+
+// API: Secure Download
+app.get('/api/media-pack/download', (req, res) => {
+    const { order_id } = req.query;
+    if (!order_id) return res.status(400).send('Missing order_id');
+
+    db.get(`SELECT status FROM orders WHERE id = ?`, [order_id], (err, row) => {
+        if (err || !row || (row.status !== 'success' && row.status !== 'paid')) {
+            return res.status(403).send('Đơn hàng chưa được thanh toán hoặc không hợp lệ.');
+        }
+
+        const filePath = '/root/website/storage/products/bo-skill-media-lamai-kp3.zip';
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).send('File không tồn tại trên server.');
+        }
+
+        res.download(filePath, 'bo-skill-media-lamai-kp3.zip');
+    });
+});
+// ---------------------------------------------------
 
 const db = new sqlite3.Database(DB_FILE, (err) => {
     if (err) {
@@ -622,7 +758,7 @@ app.post('/webhook/sepay', (req, res) => {
 
     // Tìm đơn hàng hợp lệ đang "pending" của SĐT này
     db.get(`
-        SELECT orders.id, orders.amount, customers.name, customers.email 
+        SELECT orders.id, orders.amount, orders.product_id, customers.name, customers.email 
         FROM orders 
         JOIN customers ON orders.customer_id = customers.id 
         WHERE customers.phone = ? AND orders.status = 'pending'
@@ -641,7 +777,7 @@ app.post('/webhook/sepay', (req, res) => {
         console.log(`[SePay Webhook] Tìm thấy đơn hàng ID: ${row.id}, Số tiền đơn: ${row.amount}, Nhận được: ${transferAmount}`);
 
         // Cập nhật trạng thái và ghi lại số tiền thực tế nhận được
-        db.run(`UPDATE orders SET status = 'success', amount = ? WHERE id = ?`, 
+        db.run(`UPDATE orders SET status = 'paid', amount = ? WHERE id = ?`, 
             [transferAmount > 0 ? transferAmount : row.amount, row.id], 
             function(updateErr) {
                 if (updateErr) {
@@ -653,20 +789,45 @@ app.post('/webhook/sepay', (req, res) => {
 
                 // Scenario B: Gửi email Xác nhận đơn hàng thành công qua Webhook
                 if (row.email) {
-                    sendResendEmail({
-                        to: row.email,
-                        subject: 'Xác nhận: Thanh toán thành công! 🎉',
-                        html: `
-                            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                                <h2>Chào ${row.name},</h2>
-                                <p>LAMAI xin xác nhận đã nhận được thanh toán cho đơn hàng <strong>#${row.id}</strong> của bạn.</p>
-                                <p>Đơn hàng sẽ được xử lý và vận chuyển đến bạn trong thời gian sớm nhất.</p>
-                                <p>Cảm ơn bạn đã ủng hộ chúng tôi!</p>
-                                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-                                <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
-                            </div>
-                        `
-                    });
+                    if (row.product_id === 777) {
+                        // Media Automation Pack (v7) Email
+                        const downloadUrl = `https://lamai.vn/api/media-pack/download?order_id=${row.id}`;
+                        sendResendEmail({
+                            to: row.email,
+                            subject: '🎉 Bộ Skill Media LAMAI — File của bạn đã sẵn sàng',
+                            html: `
+                                <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                                    <h2 style="color: #ea754d;">Chào ${row.name},</h2>
+                                    <p>Cảm ơn bạn đã ủng hộ LAMAI!</p>
+                                    <p>File của bạn đã sẵn sàng. Bấm vào nút dưới đây để tải bộ skill về máy:</p>
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="${downloadUrl}" style="background-color: #ea754d; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">TẢI XUỐNG BỘ SKILL (.ZIP)</a>
+                                    </div>
+                                    <p style="font-size: 0.9em;"><strong>Lưu ý:</strong> Link này có hiệu lực vĩnh viễn với email của bạn.</p>
+                                    <p style="font-size: 0.9em; color: #777; margin-top: 30px;">
+                                        Hỗ trợ kỹ thuật: Nhắn tin cho Trường qua Telegram hoặc reply email này.<br><br>
+                                        Trân trọng,<br>
+                                        <strong>Lê Xuân Trường - lamai.vn</strong>
+                                    </p>
+                                </div>
+                            `
+                        }).catch(e => console.error('[Resend] Lỗi gửi mail Media Pack:', e));
+                    } else {
+                        // Generic Success Email for other products
+                        sendResendEmail({
+                            to: row.email,
+                            subject: 'Xác nhận: Thanh toán thành công! 🎉',
+                            html: `
+                                <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                                    <h2>Chào ${row.name},</h2>
+                                    <p>LAMAI xin xác nhận đã nhận được thanh toán cho đơn hàng <strong>#${row.id}</strong> của bạn.</p>
+                                    <p>Cảm ơn bạn đã ủng hộ chúng tôi!</p>
+                                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                                    <p style="font-size: 0.9em; color: #777;">Trân trọng,<br>Đội ngũ LAMAI</p>
+                                </div>
+                            `
+                        }).catch(e => console.error('[Resend] Lỗi gửi mail thông thường:', e));
+                    }
                 }
             }
         );

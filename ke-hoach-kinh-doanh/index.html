@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản kế hoạch kinh doanh — LAMAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #FAF7F2; /* Cream/Beige */
+            --bg-secondary: #FFFFFF;
+            --text-primary: #2C2A29; /* Soft Black */
+            --text-secondary: #5C5A58;
+            --accent: #C89F82; /* Muted Gold/Rose */
+            --accent-hover: #A67D60;
+            --border: #E8E0D5;
+            --font-heading: 'Lora', serif;
+            --font-body: 'Montserrat', sans-serif;
+            --shadow: 0 10px 30px rgba(0,0,0,0.03);
+            --shadow-hover: 0 15px 40px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--accent);
+            transition: var(--transition);
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Topbar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 15px 0;
+        }
+
+        .topbar-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .topbar-nav a {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .topbar-nav a:hover {
+            color: var(--accent);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background-color: var(--accent);
+            color: #fff;
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(200, 159, 130, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--bg-secondary);
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: none;
+        }
+
+        /* Sections */
+        section {
+            padding: 100px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-subtitle {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+        }
+
+        /* 1. Hero */
+        #hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(135deg, #FAF7F2 0%, #F0EAE1 100%);
+            border-bottom: none;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .hero-tagline {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .hero-meta {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 2, 3, 4. Text Sections */
+        .text-card {
+            background: var(--bg-secondary);
+            padding: 50px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .text-card p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            color: var(--text-secondary);
+        }
+
+        .quote-box {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-style: italic;
+            border-left: 3px solid var(--accent);
+            padding-left: 20px;
+            margin: 30px 0;
+            text-align: left;
+            color: var(--text-primary);
+        }
+
+        /* 5. Money Model */
+        .money-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .pricing-table {
+            background: var(--bg-secondary);
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .pricing-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pricing-item:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-name {
+            font-weight: 500;
+        }
+
+        .pricing-price {
+            font-family: var(--font-heading);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .offer-box {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 40px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .offer-box h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .offer-box p {
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        /* 6. Funnel Blueprint */
+        .funnel-visual {
+            width: 100%;
+            height: 400px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .funnel-visual iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* 7. Funnel Assets Grid */
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .asset-card {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-top: 3px solid transparent;
+        }
+
+        .asset-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-top-color: var(--accent);
+        }
+
+        .asset-title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .asset-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        /* 8. Roadmap */
+        .timeline {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 60px;
+            margin-bottom: 50px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 5px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid var(--bg-primary);
+        }
+
+        .timeline-month {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .timeline-content {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .timeline-content ul {
+            list-style-type: none;
+        }
+
+        .timeline-content li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .timeline-content li::before {
+            content: '•';
+            color: var(--accent);
+            position: absolute;
+            left: 0;
+        }
+
+        /* 9. Asks */
+        .asks-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .ask-box {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            border-top: 3px solid var(--text-primary);
+        }
+
+        .ask-box h3 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .ask-box ul {
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .ask-box li {
+            margin-bottom: 10px;
+        }
+        
+        .final-cta {
+            text-align: center;
+            margin-top: 60px;
+            padding: 60px 0;
+            background: var(--text-primary);
+            color: var(--bg-secondary);
+            border-radius: 4px;
+        }
+        
+        .final-cta h2 {
+            margin-bottom: 30px;
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .topbar-nav {
+                display: none; /* Hide on very small screens or implement a hamburger menu */
+            }
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .money-grid, .asks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <nav class="topbar">
+        <div class="container topbar-nav">
+            <a href="#hero">Hero</a>
+            <a href="#avatar">Avatar</a>
+            <a href="#brand-voice">Brand Voice</a>
+            <a href="#mechanism">Mechanism</a>
+            <a href="#money-model">Money Model</a>
+            <a href="#funnel">Funnel</a>
+            <a href="#assets">Assets</a>
+            <a href="#roadmap">Roadmap</a>
+            <a href="#asks">Asks</a>
+        </div>
+    </nav>
+
+    <!-- 1. HERO -->
+    <section id="hero">
+        <div class="container hero-content">
+            <span class="section-subtitle">Dự án thu nhập thụ động</span>
+            <h1 class="hero-title">Bản kế hoạch kinh doanh<br>Xưởng Phim AI LAMAI</h1>
+            <p class="hero-tagline">"Hệ Thống Thiết Quân Luật - Biến ảnh tĩnh thành video triệu view cinematic trong tích tắc."</p>
+            <div class="hero-meta">
+                Tác giả: Nàng Mai | Cập nhật: 07.05.2026
+            </div>
+            <a href="#avatar" class="btn">Khám phá kế hoạch</a>
+        </div>
+    </section>
+
+    <!-- 2. AVATAR -->
+    <section id="avatar">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Target Audience</span>
+                <h2 class="section-title">Chân dung "Nàng Mai"</h2>
+            </div>
+            <div class="text-card">
+                <p>Nàng Mai (28 tuổi) là chủ shop thời trang Local Brand, đam mê cái đẹp nhưng đang kiệt sức vì vòng xoáy "quay - dựng - đăng" mỗi ngày. Nàng mơ ước một cuộc sống thảnh thơi, muốn shop vận hành tự động với những video sang chảnh triệu view. Tuy nhiên, nỗi sợ lớn nhất của nàng là công nghệ phức tạp và sợ AI tạo ra hình ảnh "giả trân", làm mất chất thương hiệu.</p>
+                <a href="01-avatar.html" target="_blank" class="btn btn-outline">View Full Avatar</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. BRAND VOICE -->
+    <section id="brand-voice">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Tone & Style</span>
+                <h2 class="section-title">Giọng văn Quý Cô AI</h2>
+            </div>
+            <div class="text-card">
+                <p>Một quý cô thanh lịch, am hiểu công nghệ, trò chuyện với khách hàng như những "tỷ muội" tâm tình. Dùng ngôn từ sang trọng để đơn giản hóa những điều phức tạp, tập trung mạnh mẽ vào giá trị của sự tự do và thảnh thơi.</p>
+                <div class="quote-box">
+                    "Nàng ạ, có bao giờ nàng thấy mệt mỏi vì bộ váy mình tâm huyết thiết kế cả tuần, nhưng lại chẳng có nổi 15 giây video 'ra chất' để khoe với khách? Hãy thử nhấp một ngụm trà, và để LAMAI lo phần còn lại nhé!"
+                </div>
+                <a href="02-brand-voice.html" target="_blank" class="btn btn-outline">View Brand Voice</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. HERO MECHANISM -->
+    <section id="mechanism">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">The Secret Sauce</span>
+                <h2 class="section-title">Cơ chế Thiết Quân Luật</h2>
+            </div>
+            <div class="text-card">
+                <p>Phương pháp độc quyền "thuần hóa" AI, kết hợp bộ Script Master Trigger để ép Agent thực thi lệnh ngay lập tức (loại bỏ hoàn toàn tình trạng treo máy). Tích hợp sẵn bộ Prompt Cinematic chuyên biệt cho ngành thời trang, chuyển hóa ảnh "phèn" thành video sang chảnh chuẩn Local Brand trong sự ổn định tuyệt đối.</p>
+                <a href="03-hero-mechanism.html" target="_blank" class="btn btn-outline">View Mechanism</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. MONEY MODEL + OFFER STACK -->
+    <section id="money-model">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Revenue Strategy</span>
+                <h2 class="section-title">Mô hình Dòng tiền (Passive Focus)</h2>
+            </div>
+            <div class="money-grid">
+                <div class="pricing-table">
+                    <div class="pricing-item">
+                        <span class="pricing-name">Gói Trải Nghiệm (Tripwire)</span>
+                        <span class="pricing-price">10.000 VNĐ</span>
+                    </div>
+                    <div class="pricing-item">
+                        <span class="pricing-name">Bump: 50 Prompt Kiêu Kỳ</span>
+                        <span class="pricing-price">+ 199.000 VNĐ</span>
+                    </div>
+                    <div class="pricing-item">
+                        <span class="pricing-name">Gói Cài Đặt Hộ (Outsource)</span>
+                        <span class="pricing-price">990.000 VNĐ</span>
+                    </div>
+                    <div class="pricing-item">
+                        <span class="pricing-name">Cộng Đồng (Membership)</span>
+                        <span class="pricing-price">1.000.000 VNĐ/tháng</span>
+                    </div>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="04-money-model.html" target="_blank" class="btn btn-outline">View Money Model</a>
+                    </div>
+                </div>
+                <div class="offer-box">
+                    <span class="section-subtitle" style="color: var(--border);">CORE OFFER</span>
+                    <h3>Lộ Trình 21 Ngày Tự Động Hóa AI</h3>
+                    <p>Khóa học thực chiến giúp khách hàng tự làm chủ hoàn toàn AI Agent thông qua hệ thống video quay sẵn. Hệ thống tự động bàn giao khóa học và tài khoản. Support kỹ thuật được chuyển giao cho Group cộng đồng để đảm bảo mô hình vận hành tự động và thụ động.</p>
+                    <div style="font-size: 2rem; font-family: var(--font-heading); color: var(--accent); margin-bottom: 20px;">3.990.000 VNĐ</div>
+                    <a href="05-offer.html" target="_blank" class="btn">View Offer Detail</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. FUNNEL BLUEPRINT -->
+    <section id="funnel">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Customer Journey</span>
+                <h2 class="section-title">Funnel Blueprint</h2>
+            </div>
+            <div class="funnel-visual">
+                <!-- Using iframe to load the visual funnel if it exists, otherwise a fallback styling -->
+                <iframe src="07-funnel-visual.html" title="Funnel Visual" style="border: none; width: 100%; height: 100%;" onerror="this.outerHTML='<div style=\'padding: 40px; text-align: center; color: var(--text-secondary);\'>Ads (Reels/TikTok) ➔ Opt-in (Starter Kit) ➔ Tripwire (10k) ➔ Email Nurture (7 days) ➔ Sales Page (3.99tr) ➔ Upsell (990k)</div>'"></iframe>
+            </div>
+            <div class="btn-group">
+                <a href="07-funnel-blueprint.html" target="_blank" class="btn">View Blueprint Chi Tiết</a>
+                <a href="06-hvco-leadmagnet.html" target="_blank" class="btn btn-outline">View Lead Magnet</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. FULL FUNNEL ASSETS -->
+    <section id="assets">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Execution</span>
+                <h2 class="section-title">Bộ Tài Sản Funnel (Assets)</h2>
+            </div>
+            <div class="assets-grid">
+                <div class="asset-card">
+                    <h3 class="asset-title">Ad Copy</h3>
+                    <p class="asset-desc">Kịch bản quảng cáo Reels/TikTok chuẩn cấu trúc hút leads mảng thời trang.</p>
+                    <a href="08-ads-copy.html" target="_blank" class="btn btn-outline">View Ads</a>
+                </div>
+                <div class="asset-card">
+                    <h3 class="asset-title">Landing Page</h3>
+                    <p class="asset-desc">Trang Sales Page bản HTML đã code giao diện thực tế cho gói Core.</p>
+                    <a href="08-landing-v3.html" target="_blank" class="btn btn-outline">View Live</a>
+                </div>
+                <div class="asset-card">
+                    <h3 class="asset-title">VSL Script</h3>
+                    <p class="asset-desc">Kịch bản Video Sales Letter áp dụng thuật bán hàng kể chuyện.</p>
+                    <a href="09-vsl-script.html" target="_blank" class="btn btn-outline">View Script</a>
+                </div>
+                <div class="asset-card">
+                    <h3 class="asset-title">Email Sequence</h3>
+                    <p class="asset-desc">Chuỗi 7 ngày nuôi dưỡng và chuyển đổi từ Tripwire lên gói Core.</p>
+                    <a href="10-email-sequence.html" target="_blank" class="btn btn-outline">View Emails</a>
+                </div>
+                <div class="asset-card">
+                    <h3 class="asset-title">Follow-up Engine</h3>
+                    <p class="asset-desc">Chuỗi 3 email tái tương tác giải quyết nỗi sợ kỹ thuật của Cold Leads.</p>
+                    <a href="11-follow-up.html" target="_blank" class="btn btn-outline">View Follow-up</a>
+                </div>
+                <div class="asset-card">
+                    <h3 class="asset-title">Sales Script</h3>
+                    <p class="asset-desc">Kịch bản chốt đơn qua Messenger/Zalo (Thay thế Telesales cho mô hình Self-serve).</p>
+                    <a href="12-sales-script.html" target="_blank" class="btn btn-outline">View Script</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. ROADMAP 90 NGÀY -->
+    <section id="roadmap">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Action Plan</span>
+                <h2 class="section-title">Roadmap 90 Ngày</h2>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-month">Tháng 1 — Khởi động & Ráp Phễu</div>
+                    <div class="timeline-content">
+                        <ul>
+                            <li><strong>Triển khai Website & Tracking:</strong> Deploy <code>08-landing-v3.html</code> lên VPS, kết nối Sepay.</li>
+                            <li><strong>Kích hoạt Nurturing:</strong> Setup chuỗi email 7 ngày <code>10-email-sequence.md</code>.</li>
+                            <li><strong>Chạy Test Ads:</strong> Thu thập 50 Leads đầu bằng <code>08-ads-copy.md</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-month">Tháng 2 — Bán hàng & Tối ưu</div>
+                    <div class="timeline-content">
+                        <ul>
+                            <li><strong>Launch Core Offer:</strong> Mở bán gói 3.99tr bằng <code>05-offer.md</code>.</li>
+                            <li><strong>Kích hoạt Chốt Chat & Follow-up:</strong> Áp dụng <code>12-sales-script.md</code> và <code>11-follow-up.md</code> để vét đơn.</li>
+                            <li><strong>Bàn giao lứa đầu:</strong> Xử lý lỗi, đảm bảo Thiết Quân Luật hoạt động.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-month">Tháng 3 — Tự động hóa & Buông tay</div>
+                    <div class="timeline-content">
+                        <ul>
+                            <li><strong>Ổn định Ads:</strong> Duy trì ngân sách 3 triệu/tháng giữ nhịp 3-4 đơn tự động.</li>
+                            <li><strong>Xây Cộng đồng tự vận hành:</strong> Bàn giao support chéo cho Group Tỷ Muội Tinh Hoa.</li>
+                            <li><strong>Chuyển giao Setup:</strong> Outsource khâu cài đặt kỹ thuật (gói 990k) cho Freelancer.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. ASKS -->
+    <section id="asks">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Support Required</span>
+                <h2 class="section-title">Tôi Cần Gì Để Đi Nhanh Hơn?</h2>
+            </div>
+            <div class="asks-grid">
+                <div class="ask-box">
+                    <h3>1. Điểm yếu cốt tử</h3>
+                    <ul>
+                        <li>Chưa biết chạy Performance Ads cho mảng Info-Product (Sợ CPL vọt quá cao).</li>
+                        <li>Yếu kỹ thuật hệ thống (Không tự fix được nếu VPS hoặc API sập).</li>
+                        <li>Chưa có kinh nghiệm build cộng đồng để group tự support chéo.</li>
+                    </ul>
+                </div>
+                <div class="ask-box">
+                    <h3>2. Mong muốn hỗ trợ (Nghĩa/KP3)</h3>
+                    <ul>
+                        <li><strong>Done-for-you Ads:</strong> Setup mẫu 1-2 chiến dịch Lead Gen đầu tiên chuẩn tệp.</li>
+                        <li><strong>Khoá Pro/SOP Kỹ thuật:</strong> Tài liệu khắc phục sự cố khẩn cấp hoặc contact thuê Freelancer nội bộ KP3.</li>
+                        <li><strong>Coaching 1-1 (1 buổi):</strong> Soát xét cách tối ưu tỷ lệ chuyển đổi từ Tripwire lên Core Offer.</li>
+                    </ul>
+                </div>
+                <div class="ask-box">
+                    <h3>3. Vấn đề rủi ro (90 ngày tới)</h3>
+                    <ul>
+                        <li>Khách mua thử 10k nhưng lười không lên gói 3.99tr làm hụt doanh thu.</li>
+                        <li>Hạ tầng VPS nghẽn khi có nhiều khách dùng cùng lúc.</li>
+                        <li>Bị kẹt vào việc chat support lặt vặt, ảnh hưởng tới công việc bán quần áo chính.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="final-cta">
+                <h2>Bản thiết kế đã hoàn tất. Cơ chế đã sẵn sàng.</h2>
+                <a href="#" onclick="alert('Demo Day đang chờ đón Nàng!'); return false;" class="btn" style="background-color: var(--bg-primary); color: var(--text-primary);">Tôi sẵn sàng pitch ở Demo Day Ngày 21</a>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

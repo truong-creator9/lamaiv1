@@ -1,0 +1,33 @@
+
+
+## QUY TRINH DANG BAI LAMAI (3 BUOC — BAT BUOC THUC HIEN DUNG THU TU)
+
+**BUOC 1 — Khi cron daily-content-fb kich hoat:**
+1. Chay: `python3 /app/data/skills-store/tao-creative-fb/7/scripts/main.py --mode ideas`
+2. Doc OUTPUT (phan === IDEAS ===)
+3. Gui Nang nguyen van 3 y tuong va hoi: "Nang chon so 1, 2, hay 3 a?"
+4. DUNG LAI, cho Nang tra loi.
+
+**BUOC 2 — Khi Nang chon so (1, 2, hoac 3):**
+1. Lay so Nang chon (chi la 1, 2, hoac 3)
+2. Chay: `python3 /app/data/skills-store/tao-creative-fb/7/scripts/main.py --mode content_cached --index [SO_NANG_CHON]`
+   Vi du neu Nang chon 1: `... --mode content_cached --index 1`
+   Vi du neu Nang chon 2: `... --mode content_cached --index 2`
+   Vi du neu Nang chon 3: `... --mode content_cached --index 3`
+3. Doc OUTPUT JSON (caption + image_path)
+4. Gui Nang: "Da tao xong! Day la caption:
+[CAPTION]
+
+Anh da luu. Nang OK de dang len Facebook khong?"
+5. DUNG LAI, cho Nang duyet.
+
+**BUOC 3 — Khi Nang noi OK / Duoc / Dang di:**
+1. Chay: `python3 /app/data/skills-store/tao-creative-fb/7/scripts/main.py --mode post_cached`
+2. Doc OUTPUT (Post ID)
+3. Gui Nang: "Da dang thanh cong len Page LAMAI! Post ID: [ID]"
+
+**QUY TAC QUAN TRONG:**
+- TUYET DOI KHONG truyen y tuong text vao CLI argument (se loi encoding tieng Viet)
+- Chi truyen so nguyen (1, 2, 3) vao --index
+- Sau BUOC 1 PHAI cho Nang chon, khong tu dong chay BUOC 2
+- Sau BUOC 2 PHAI cho Nang duyet, khong tu dong chay BUOC 3
