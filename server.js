@@ -87,10 +87,16 @@ app.use((req, res, next) => {
     next();
 });
 
+// Giữ URL gọn /ke-hoach đồng bộ local/VPS với thư mục thật /ke-hoach
+app.use((req, res, next) => {
+    if (req.path === '/ke-hoach') {
+        req.url = '/ke-hoach/index.html';
+    }
+    next();
+});
+
 // Serve static files from the current directory (for index.html, etc.)
 app.use(express.static(__dirname));
-// Route cho Kế hoạch kinh doanh (Demo Day)
-app.use('/ke-hoach', express.static(path.join(__dirname, 'ke-hoach-kinh-doanh')));
 
 // --- Sales Funnel Routes (Media Automation Pack) ---
 app.get('/san-pham/media-automation-pack', (req, res) => {
